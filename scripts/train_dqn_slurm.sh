@@ -14,7 +14,7 @@ module load Python/3.11.5-GCCcore-13.2.0 2>/dev/null || \
   module load python/3.11 2>/dev/null || true
 
 PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-source "$PROJECT_ROOT/.venv_cluster/bin/activate"
+export PATH="$HOME/.local/bin:$PATH"
 
 # Headless SDL — prevents pygame from trying to open a display window
 export SDL_VIDEODRIVER=dummy
@@ -26,13 +26,13 @@ echo "Job ID:   $SLURM_JOB_ID"
 echo "Node:     $SLURMD_NODENAME"
 echo "Time:     $(date)"
 echo "Dir:      $PROJECT_ROOT"
-python -c "import torch; print(f'PyTorch {torch.__version__}, CUDA: {torch.cuda.is_available()}, device: {torch.cuda.get_device_name(0) if torch.cuda.is_available() else \"cpu\"}')"
+uv run python -c "import torch; print(f'PyTorch {torch.__version__}, CUDA: {torch.cuda.is_available()}, device: {torch.cuda.get_device_name(0) if torch.cuda.is_available() else \"cpu\"}')"
 
 mkdir -p "$PROJECT_ROOT/results/dqn"
 
 # ── training ──────────────────────────────────────────────────────────────────
 cd "$PROJECT_ROOT"
-python scripts/train_dqn.py \
+uv run python scripts/train_dqn.py \
   --total_steps 500000 \
   --warmup      5000   \
   --buffer_cap  100000 \

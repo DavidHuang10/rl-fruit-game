@@ -1,73 +1,82 @@
-# RL Fruit Game — Suika with Reinforcement Learning
+# RL Fruit Game
 
-A custom [Gymnasium](https://gymnasium.farama.org/) environment for the Suika (Watermelon) Game, with value-based (DQN) and policy-based (PPO/REINFORCE) RL agents.
+Suika-style fruit merging implemented as a custom Gymnasium environment, with DQN, PPO, random, and center-drop agents for comparison.
 
-## What it Does
+## What It Does
 
-Simulates the Suika puzzle game: drop fruits into a container, same-type fruits merge into the next tier, and the goal is to maximise score before the stack overflows. Agents learn solely from merge rewards — no hand-crafted heuristics.
+The environment simulates a turn-based Suika puzzle game. The agent chooses one of 32 drop columns, physics resolves, matching fruits merge into larger fruits, and the episode ends when the stack crosses the danger line. Rewards are based on merge score only.
 
 ## Quick Start
 
 ```bash
-pip install -r requirements.txt
-
-# Run tests
-pytest tests/ -v
-
-# Play it yourself
-python scripts/play_human.py   # arrow keys to aim, SPACE to drop
+uv sync
+uv run pytest tests/ -v
+uv run python scripts/play_human.py
 ```
 
-## Environment: `suika_env/SuikaEnv-v0`
+Human controls: arrow keys move the drop column, space drops the fruit.
+
+## Train
+
+```bash
+# DQN
+uv run python scripts/train_dqn.py
+
+# PPO
+uv run python scripts/train_ppo_sb3.py
+```
+
+Cluster jobs:
+
+```bash
+sbatch scripts/train_dqn_slurm.sh
+sbatch scripts/train_ppo_slurm.sh
+```
+
+Outputs are written to `results/dqn/` and `results/ppo/`.
+
+## Evaluate
+
+```bash
+uv run python scripts/eval_agent.py --agent random --episodes 50
+uv run python scripts/eval_agent.py --agent center --episodes 50
+uv run python scripts/eval_agent.py --agent dqn --checkpoint results/dqn/model.pt --episodes 50
+uv run python scripts/eval_agent.py --agent ppo --checkpoint results/ppo/model.zip --episodes 50
+```
+
+Evaluation writes per-episode CSVs and summary JSON files to `results/eval/`.
+
+## Current Status
+
+- DQN and PPO training are running on the cluster.
+- Random and center baselines have 50-episode evaluation summaries.
+- Current PPO logs do not show clear learning: returns are mostly flat, entropy remains near random-action levels, and value explained variance is near zero.
+- Final DQN/PPO comparison should use the completed cluster checkpoints.
+
+## Environment
 
 ```python
-import suika_env
 import gymnasium as gym
+import suika_env
 
 env = gym.make("suika_env/SuikaEnv-v0")
 obs, info = env.reset(seed=42)
-obs, reward, terminated, truncated, info = env.step(action)  # action ∈ [0, 31]
+obs, reward, terminated, truncated, info = env.step(action)
 ```
 
-**Turn-based**: agents act only after the physics has fully settled.
-
-| | Detail |
+| Property | Value |
 |---|---|
-| Action space | `Discrete(32)` — drop x-column |
-| Observation | `Dict` with padded fruit positions/types, current & next fruit |
-| Reward | Merge score gained this step (canonical Suika triangular: 1, 3, 6, … 66) |
-| Termination | Any fruit resting above the danger line |
-
-## Fruit Chain
-
-| # | Fruit | Radius | Score |
-|---|-------|-------:|------:|
-| 0 | Cherry | 12 | 1 |
-| 1 | Strawberry | 18 | 3 |
-| 2 | Grape | 24 | 6 |
-| 3 | Dekopon | 30 | 10 |
-| 4 | Persimmon | 38 | 15 |
-| 5 | Apple | 46 | 21 |
-| 6 | Pear | 56 | 28 |
-| 7 | Peach | 66 | 36 |
-| 8 | Pineapple | 78 | 45 |
-| 9 | Melon | 90 | 55 |
-| 10 | Watermelon | 104 | 66 *(pair vanishes)* |
-
-## Evaluation
-
-- **Throughput:** ~64 steps/sec on CPU (adequate for training)
-- **Tests:** 37/37 passing (`pytest tests/ -v`)
-- **SB3 `check_env`:** passes (no errors)
-
-## Video Links
-
-*(to be added)*
+| Action space | `Discrete(32)` drop column |
+| Observation | Dict with padded fruit positions/types, fruit mask, current fruit, next fruit |
+| Reward | Merge score gained after the drop |
+| Termination | Fruit stack crosses the danger line |
 
 ## Project Structure
 
-```
-suika_env/      Gymnasium env (env.py, world.py, render.py, fruits.py, config.py)
-tests/          Unit + API tests
-scripts/        Human play demo
+```text
+suika_env/   Gymnasium environment and physics
+agents/      DQN, replay buffer, network, baseline agents
+scripts/     Training, evaluation, human play, Slurm jobs
+tests/       Unit and API tests
+results/     Checkpoints, metrics, plots, eval summaries
 ```
