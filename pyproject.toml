@@ -2,7 +2,7 @@
 name = "rl-fruit-game"
 version = "0.1.0"
 description = "DQN and PPO agents trained on a custom Suika (fruit-merging) Gymnasium environment"
-requires-python = ">=3.11"
+requires-python = ">=3.10"
 dependencies = [
     "pymunk>=6.6",
     "pygame>=2.5",
