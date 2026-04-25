@@ -1,12 +1,12 @@
 {
-  "mean_episode_return": 2100.0,
-  "std_episode_return": 192.0,
-  "mean_final_score": 2100.0,
-  "std_final_score": 192.0,
-  "mean_episode_length": 192.0,
-  "std_episode_length": 23.0,
-  "mean_final_num_fruits": 54.0,
-  "std_final_num_fruits": 5.0,
-  "mean_last_physics_frames": 77.5,
-  "std_last_physics_frames": 12.5
+  "mean_episode_return": 2927.92,
+  "std_episode_return": 539.3530880601314,
+  "mean_final_score": 2927.92,
+  "std_final_score": 539.3530880601314,
+  "mean_episode_length": 237.22,
+  "std_episode_length": 32.40573406050232,
+  "mean_final_num_fruits": 46.4,
+  "std_final_num_fruits": 4.261455150532503,
+  "mean_last_physics_frames": 112.42,
+  "std_last_physics_frames": 53.03813345131971
 }
