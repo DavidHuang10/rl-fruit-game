@@ -8,6 +8,21 @@ The marginal cost of completeness is near zero with AI. Do the whole thing. Do i
 
 Write the cleanest, most elegant solution — not just a working one. Every function should read like it was written by someone who understood the problem deeply before touching the keyboard. Eliminate redundancy without mercy. Name things so precisely that comments are unnecessary. If you find yourself copy-pasting logic, stop and abstract. If a block of code makes you wince, rewrite it. The bar is: would a senior engineer read this and think "yes, obviously"? If not, it's not done. Correctness is the floor, not the ceiling.
 
+## Attribution (CS 372 Requirement)
+
+After every session that produces new code or design decisions, update `ATTRIBUTION.md`. It must include:
+- Which files/components were AI-generated in this session
+- What the user directed: architecture choices, experiment design, reward shaping, hyperparameter decisions, what to test
+- What was debugged, fixed, or substantially reworked after generation
+- What the user understood and validated vs. took on trust
+
+Every new file should have a file-level comment indicating AI generation extent, e.g.:
+```python
+# Generated with Claude Code (claude-sonnet-4-6). Architecture and experiments directed by David Huang.
+```
+
+Also update `notes/experiments.md` whenever a training run completes — log config, results, and what changed.
+
 ## Memory
 
 Update memory proactively. After each significant task, architectural decision, or discovery, save anything non-obvious to the memory system at `~/.claude/projects/-Users-davidhuang-rl-fruit-game/memory/`. Prune stale entries. If something is obvious from the code, don't save it — only save what a future session would have to re-derive the hard way.
