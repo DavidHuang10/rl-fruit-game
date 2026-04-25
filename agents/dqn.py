@@ -96,9 +96,9 @@ class DQNAgent:
         self.online.train()
         return int(q.argmax(dim=-1).item())
 
-    def tick_env_step(self) -> None:
+    def tick_env_step(self, n: int = 1) -> None:
         """Call once per environment step (even random warmup ones)."""
-        self._env_steps += 1
+        self._env_steps += n
 
     # ── learning ──────────────────────────────────────────────────────────────
 

@@ -6,6 +6,7 @@
 Usage:
     uv run python scripts/train_dqn.py
     uv run python scripts/train_dqn.py --total_steps 5000 --warmup 1000   # smoke test
+    uv run python scripts/train_dqn.py --n_envs 4                          # parallel envs
 """
 
 from __future__ import annotations
@@ -38,8 +39,14 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--grad_freq",     type=int,   default=4,      help="gradient step every N env steps")
     p.add_argument("--log_freq",      type=int,   default=5_000,  help="log interval (env steps)")
     p.add_argument("--ckpt_freq",     type=int,   default=50_000, help="checkpoint interval (env steps)")
+    p.add_argument("--n_envs",        type=int,   default=1,      help="parallel environments via AsyncVectorEnv")
     p.add_argument("--seed",          type=int,   default=42)
     return p.parse_args()
+
+
+def _crossed(env_steps: int, n_envs: int, freq: int) -> bool:
+    """True when env_steps just crossed a multiple of freq."""
+    return env_steps // freq > (env_steps - n_envs) // freq
 
 
 def _save_curves(metrics_path: pathlib.Path) -> None:
@@ -68,20 +75,29 @@ def _save_curves(metrics_path: pathlib.Path) -> None:
 
 def main() -> None:
     args = parse_args()
+    n_envs = args.n_envs
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
     np.random.seed(args.seed)
 
-    env    = SuikaEnv()
+    if n_envs > 1:
+        from gymnasium.vector import AsyncVectorEnv
+        env = AsyncVectorEnv([lambda: SuikaEnv() for _ in range(n_envs)])
+        obs, _ = env.reset(seed=list(range(args.seed, args.seed + n_envs)))
+    else:
+        env = SuikaEnv()
+        obs, _ = env.reset(seed=args.seed)
+
     agent  = DQNAgent(
         batch_size=args.batch_size,
         total_grad_steps=max(1, (args.total_steps - args.warmup) // args.grad_freq),
     )
     buffer = DictReplayBuffer(capacity=args.buffer_cap)
 
-    print(f"Device: {agent.device}")
-    print(f"Total env steps: {args.total_steps:,}  |  warmup: {args.warmup:,}")
-    print(f"Results → {RESULTS_DIR.resolve()}\n")
+    print(f"Device:      {agent.device}")
+    print(f"Envs:        {n_envs}")
+    print(f"Total steps: {args.total_steps:,}  |  warmup: {args.warmup:,}")
+    print(f"Results →    {RESULTS_DIR.resolve()}\n")
 
     metrics_path = RESULTS_DIR / "metrics.csv"
     csv_file = open(metrics_path, "w", newline="")
@@ -96,43 +112,77 @@ def main() -> None:
     ep_lengths: collections.deque[int]   = collections.deque(maxlen=100)
     recent_losses: list[float]           = []
 
-    obs, _ = env.reset(seed=args.seed)
-    ep_ret, ep_len = 0.0, 0
+    # scalar for single env, array for vectorized — keeps types clean
+    if n_envs > 1:
+        ep_ret: float | np.ndarray = np.zeros(n_envs)
+        ep_len: int | np.ndarray   = np.zeros(n_envs, dtype=int)
+    else:
+        ep_ret = 0.0
+        ep_len = 0
     t0 = time.time()
 
-    for step in range(1, args.total_steps + 1):
+    # grad step every ceil(grad_freq / n_envs) loop iterations
+    grad_iter_freq = max(1, args.grad_freq // n_envs)
+
+    for iter_num in range(1, args.total_steps // n_envs + 1):
+        env_steps = iter_num * n_envs
+        in_warmup = env_steps <= args.warmup
+
         # ── action selection ──────────────────────────────────────────────
-        in_warmup = step <= args.warmup
         if in_warmup:
             action = env.action_space.sample()
+        elif n_envs > 1:
+            action = np.array([
+                agent.select_action({k: v[i] for k, v in obs.items()})
+                for i in range(n_envs)
+            ])
         else:
             action = agent.select_action(obs)
 
         # ── env step ──────────────────────────────────────────────────────
         next_obs, reward, terminated, truncated, info = env.step(action)
-        done = terminated or truncated
+        done = terminated | truncated
 
-        buffer.push(obs, action, reward, next_obs, done)
-        agent.tick_env_step()
+        # ── buffer push ───────────────────────────────────────────────────
+        if n_envs > 1:
+            for i in range(n_envs):
+                obs_i  = {k: v[i] for k, v in obs.items()}
+                nobs_i = {k: v[i] for k, v in next_obs.items()}
+                buffer.push(obs_i, int(action[i]), float(reward[i]), nobs_i, bool(done[i]))
+        else:
+            buffer.push(obs, int(action), float(reward), next_obs, bool(done))
 
+        agent.tick_env_step(n_envs)
+
+        # ── episode tracking ──────────────────────────────────────────────
         ep_ret += reward
         ep_len += 1
+
+        if n_envs > 1:
+            for i in range(n_envs):
+                if done[i]:
+                    ep_returns.append(float(ep_ret[i]))
+                    ep_lengths.append(int(ep_len[i]))
+                    ep_ret[i] = 0.0
+                    ep_len[i] = 0
+        else:
+            if done:
+                ep_returns.append(float(ep_ret))  # type: ignore[arg-type]
+                ep_scores.append(float(info.get("score", 0.0)))
+                ep_lengths.append(int(ep_len))    # type: ignore[arg-type]
+                ep_ret = 0.0
+                ep_len = 0
+                next_obs, _ = env.reset()
+
         obs = next_obs
 
-        if done:
-            ep_returns.append(ep_ret)
-            ep_scores.append(float(info.get("score", 0.0)))   # cumulative game score
-            ep_lengths.append(ep_len)
-            ep_ret, ep_len = 0.0, 0
-            obs, _ = env.reset()
-
         # ── gradient step ─────────────────────────────────────────────────
-        if not in_warmup and step % args.grad_freq == 0 and buffer.size >= args.batch_size:
+        if not in_warmup and iter_num % grad_iter_freq == 0 and buffer.size >= args.batch_size:
             loss = agent.update(buffer)
             recent_losses.append(loss)
 
         # ── logging ───────────────────────────────────────────────────────
-        if step % args.log_freq == 0:
+        if _crossed(env_steps, n_envs, args.log_freq):
             mean_ret   = float(np.mean(ep_returns))    if ep_returns   else float("nan")
             mean_score = float(np.mean(ep_scores))     if ep_scores    else float("nan")
             mean_len   = float(np.mean(ep_lengths))    if ep_lengths   else float("nan")
@@ -141,7 +191,7 @@ def main() -> None:
             recent_losses.clear()
 
             writer.writerow({
-                "env_step":       step,
+                "env_step":       env_steps,
                 "mean_ep_return": f"{mean_ret:.2f}",
                 "mean_ep_score":  f"{mean_score:.2f}",
                 "mean_ep_length": f"{mean_len:.1f}",
@@ -153,17 +203,17 @@ def main() -> None:
             csv_file.flush()
 
             elapsed = time.time() - t0
-            steps_per_sec = step / elapsed
-            eta_sec = (args.total_steps - step) / max(steps_per_sec, 1e-9)
+            steps_per_sec = env_steps / elapsed
+            eta_sec = (args.total_steps - env_steps) / max(steps_per_sec, 1e-9)
             print(
-                f"step {step:>8,} | ret {mean_ret:>8.1f} | score {mean_score:>8.1f} | "
+                f"step {env_steps:>8,} | ret {mean_ret:>8.1f} | score {mean_score:>8.1f} | "
                 f"loss {mean_loss:>9.5f} | eps {agent.epsilon:.3f} | "
                 f"lr {current_lr:.2e} | {steps_per_sec:.1f} sps | ETA {eta_sec/60:.0f}m"
             )
 
         # ── checkpoint ────────────────────────────────────────────────────
-        if step % args.ckpt_freq == 0:
-            agent.save(RESULTS_DIR / f"model_step{step}.pt")
+        if _crossed(env_steps, n_envs, args.ckpt_freq):
+            agent.save(RESULTS_DIR / f"model_step{env_steps}.pt")
 
     # ── final save ────────────────────────────────────────────────────────
     csv_file.close()
@@ -191,6 +241,7 @@ def _write_experiment_log(args: argparse.Namespace, agent: DQNAgent) -> None:
 - buffer_cap: {args.buffer_cap:,}
 - batch_size: {args.batch_size}
 - grad_freq: every {args.grad_freq} env steps
+- n_envs: {args.n_envs}
 - device: {agent.device}
 - network: SuikaQNetwork (per-fruit MLP 13→128→128, mean+max pool, head 266→256→256→32)
 - algorithm: Double DQN, γ=0.99, Adam lr=3e-4 cosine→1e-5, grad_clip=10, target_sync=1000 grad steps
