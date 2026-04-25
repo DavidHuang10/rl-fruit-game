@@ -1,0 +1,12 @@
+{
+  "mean_episode_return": 2535.0,
+  "std_episode_return": 473.0,
+  "mean_final_score": 2535.0,
+  "std_final_score": 473.0,
+  "mean_episode_length": 222.5,
+  "std_episode_length": 16.5,
+  "mean_final_num_fruits": 59.0,
+  "std_final_num_fruits": 1.0,
+  "mean_last_physics_frames": 71.0,
+  "std_last_physics_frames": 9.0
+}
