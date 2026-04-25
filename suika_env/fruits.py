@@ -1,8 +1,9 @@
 from dataclasses import dataclass
 from typing import Tuple
 
-NUM_FRUITS = 11
-NEXT_FRUIT_POOL = list(range(5))  # cherry → persimmon are agent-spawnable
+from .constants import NEXT_FRUIT_POOL, NUM_FRUIT_TYPES
+
+NUM_FRUITS = NUM_FRUIT_TYPES
 
 
 @dataclass(frozen=True)

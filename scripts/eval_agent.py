@@ -4,32 +4,14 @@ import argparse
 import csv
 import json
 import pathlib
-from typing import Protocol
 
 import numpy as np
-from stable_baselines3 import PPO
 
-from agents.center_agent import CenterAgent
-from agents.dqn import DQNAgent
-from agents.random_agent import RandomAgent
+from agents import SelectsAction, build_agent
 from suika_env import SuikaEnv
 
 
 RESULTS_DIR = pathlib.Path("results/eval")
-
-
-class SelectsAction(Protocol):
-    def select_action(self, obs: dict, eval_mode: bool = True) -> int:
-        ...
-
-
-class PPOAgent:
-    def __init__(self, checkpoint: str | pathlib.Path) -> None:
-        self.model = PPO.load(checkpoint)
-
-    def select_action(self, obs: dict, eval_mode: bool = True) -> int:
-        action, _ = self.model.predict(obs, deterministic=eval_mode)
-        return int(action)
 
 
 def parse_args() -> argparse.Namespace:
@@ -40,25 +22,6 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--seed", type=int, default=123)
     p.add_argument("--out_dir", type=pathlib.Path, default=RESULTS_DIR)
     return p.parse_args()
-
-
-def build_agent(kind: str, env: SuikaEnv, checkpoint: str | None) -> SelectsAction:
-    if kind == "random":
-        return RandomAgent(env.action_space)
-    if kind == "center":
-        return CenterAgent(env.action_space)
-    if kind == "dqn":
-        if checkpoint is None:
-            checkpoint = "results/dqn/model.pt"
-        agent = DQNAgent()
-        agent.load(checkpoint)
-        return agent
-    if kind == "ppo":
-        if checkpoint is None:
-            checkpoint = "results/ppo/model.zip"
-        return PPOAgent(checkpoint)
-    raise ValueError(f"Unknown agent: {kind}")
-
 
 def evaluate(agent: SelectsAction, episodes: int, seed: int) -> list[dict[str, float]]:
     rows: list[dict[str, float]] = []
@@ -125,7 +88,7 @@ def main() -> None:
     args = parse_args()
     env = SuikaEnv()
     try:
-        agent = build_agent(args.agent, env, args.checkpoint)
+        agent = build_agent(args.agent, env.action_space, args.checkpoint)
     finally:
         env.close()
 

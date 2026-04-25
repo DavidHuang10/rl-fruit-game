@@ -2,6 +2,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Literal, Optional
 
+from .constants import ACTION_COUNT, MAX_FRUITS
+
 
 @dataclass(frozen=True)
 class EnvConfig:
@@ -15,10 +17,10 @@ class EnvConfig:
     danger_line_y: int = 120    # fruits resting above this → game over
 
     # Action space
-    n_action_bins: int = 32
+    n_action_bins: int = ACTION_COUNT
 
     # Observation
-    max_fruits: int = 100
+    max_fruits: int = MAX_FRUITS
     observation_mode: Literal["state", "pixels"] = "state"
 
     # Physics

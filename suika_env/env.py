@@ -112,8 +112,7 @@ class SuikaEnv(gym.Env):
         if frame_score > 0:
             self._settle_quiet_frames = 0
         else:
-            ke = self._world._total_kinetic_energy()
-            if ke < self.cfg.settle_ke_threshold:
+            if self._world.is_quiet():
                 self._settle_quiet_frames += 1
             else:
                 self._settle_quiet_frames = 0

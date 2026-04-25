@@ -5,8 +5,9 @@
 import numpy as np
 from typing import Dict
 
+from suika_env.constants import MAX_FRUITS, NUM_FRUIT_TYPES
 
-_NUM_FRUIT_TYPES = 11
+_NUM_FRUIT_TYPES = NUM_FRUIT_TYPES
 
 
 class DictReplayBuffer:
@@ -22,7 +23,7 @@ class DictReplayBuffer:
         sample(batch_size) -> dict with 'obs', 'next_obs', 'actions', 'rewards', 'dones'
     """
 
-    def __init__(self, capacity: int = 100_000, max_fruits: int = 100) -> None:
+    def __init__(self, capacity: int = 100_000, max_fruits: int = MAX_FRUITS) -> None:
         self.capacity  = capacity
         self.max_fruits = max_fruits
         self._pos  = 0

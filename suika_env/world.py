@@ -185,8 +185,7 @@ class SuikaWorld:
                 quiet_frames = 0
                 continue
 
-            ke = self._total_kinetic_energy()
-            if ke < self.cfg.settle_ke_threshold:
+            if self.is_quiet():
                 quiet_frames += 1
             else:
                 quiet_frames = 0
@@ -195,6 +194,9 @@ class SuikaWorld:
                 break
 
         return score_gained, frames
+
+    def is_quiet(self) -> bool:
+        return self._total_kinetic_energy() < self.cfg.settle_ke_threshold
 
     def _total_kinetic_energy(self) -> float:
         total = 0.0

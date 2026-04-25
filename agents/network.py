@@ -7,10 +7,10 @@ import torch.nn as nn
 import torch.nn.functional as F
 from typing import Dict
 
-NUM_FRUIT_TYPES = 11   # all tiers 0-10
-POOL_SIZE = 5          # spawnable tiers 0-4
-N_ACTIONS = 32
-MAX_FRUITS = 100
+from suika_env.constants import ACTION_COUNT, MAX_FRUITS, NUM_FRUIT_TYPES, SPAWN_POOL_SIZE
+
+POOL_SIZE = SPAWN_POOL_SIZE  # spawnable tiers 0-4
+N_ACTIONS = ACTION_COUNT
 PER_FRUIT_IN = 13      # x, y (2) + one-hot type (11)
 
 
