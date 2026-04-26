@@ -11,7 +11,7 @@ from suika_env.constants import ACTION_COUNT, MAX_FRUITS, NUM_FRUIT_TYPES, SPAWN
 
 POOL_SIZE = SPAWN_POOL_SIZE  # spawnable tiers 0-4
 N_ACTIONS = ACTION_COUNT
-PER_FRUIT_IN = 13      # x, y (2) + one-hot type (11)
+PER_FRUIT_IN = 14      # x, y, radius (3) + one-hot type (11)
 
 
 def obs_to_tensor(obs: Dict, device: torch.device) -> Dict[str, torch.Tensor]:
@@ -30,8 +30,7 @@ def obs_to_tensor(obs: Dict, device: torch.device) -> Dict[str, torch.Tensor]:
     nxt_np      = prep(obs["next_fruit"],    single)  # [B] or [1]
 
     return {
-        # drop vx, vy (channels 2 and 3) — always ~0 at every settled obs
-        "fruits":        torch.tensor(fruits_np[:, :, :2],         dtype=torch.float32, device=device),
+        "fruits":        torch.tensor(fruits_np,                   dtype=torch.float32, device=device),
         "fruit_types":   torch.tensor(types_np,                    dtype=torch.float32, device=device),
         "fruit_mask":    torch.tensor(mask_np.astype(np.float32),  dtype=torch.float32, device=device),
         "current_fruit": torch.tensor(cur_np.astype(np.int64),     dtype=torch.long,    device=device),
@@ -61,7 +60,7 @@ class SuikaQNetwork(nn.Module):
     ) -> None:
         super().__init__()
         self._n_spawn = n_spawn_types
-        per_fruit_in = 2 + n_fruit_types  # x, y + one-hot type
+        per_fruit_in = 3 + n_fruit_types  # x, y, radius + one-hot type
 
         self.fruit_encoder = nn.Sequential(
             nn.Linear(per_fruit_in, per_fruit_hidden),
@@ -84,7 +83,7 @@ class SuikaQNetwork(nn.Module):
 
     def forward(
         self,
-        fruits:        torch.Tensor,   # [B, 100, 2]   x/W, y/H
+        fruits:        torch.Tensor,   # [B, 100, 3]   x/W, y/H, r/R
         fruit_types:   torch.Tensor,   # [B, 100, 11]  one-hot
         fruit_mask:    torch.Tensor,   # [B, 100]      float32, 1=active 0=padding
         current_fruit: torch.Tensor,   # [B]           long

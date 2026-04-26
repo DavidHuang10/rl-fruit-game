@@ -30,14 +30,14 @@ class DictReplayBuffer:
         self._size = 0
 
         # Current observation fields
-        self._s_fruits  = np.zeros((capacity, max_fruits, 4), dtype=np.float32)
+        self._s_fruits  = np.zeros((capacity, max_fruits, 3), dtype=np.float32)
         self._s_typeidx = np.zeros((capacity, max_fruits),    dtype=np.int8)
         self._s_mask    = np.zeros((capacity, max_fruits),    dtype=np.int8)
         self._s_cur     = np.zeros(capacity,                  dtype=np.int8)
         self._s_nxt     = np.zeros(capacity,                  dtype=np.int8)
 
         # Next observation fields
-        self._ns_fruits  = np.zeros((capacity, max_fruits, 4), dtype=np.float32)
+        self._ns_fruits  = np.zeros((capacity, max_fruits, 3), dtype=np.float32)
         self._ns_typeidx = np.zeros((capacity, max_fruits),    dtype=np.int8)
         self._ns_mask    = np.zeros((capacity, max_fruits),    dtype=np.int8)
         self._ns_cur     = np.zeros(capacity,                  dtype=np.int8)

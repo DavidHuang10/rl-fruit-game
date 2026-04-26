@@ -15,8 +15,6 @@ from .fruits import FRUITS, NUM_FRUITS
 class FruitState:
     x: float
     y: float
-    vx: float
-    vy: float
     fruit_type: int
 
 
@@ -238,8 +236,6 @@ class SuikaWorld:
             FruitState(
                 x=self._body_map[sid].position.x,
                 y=self._body_map[sid].position.y,
-                vx=self._body_map[sid].velocity.x,
-                vy=self._body_map[sid].velocity.y,
                 fruit_type=self._body_map[sid].suika_type,
             )
             for sid in sorted(self._alive_ids)

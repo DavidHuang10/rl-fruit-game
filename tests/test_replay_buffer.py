@@ -11,11 +11,12 @@ MAX_FRUITS = 100
 def _make_obs(seed: int = 0) -> dict:
     rng = np.random.default_rng(seed)
     n_active = rng.integers(1, 15)
-    fruits   = np.zeros((MAX_FRUITS, 4), dtype=np.float32)
+    fruits   = np.zeros((MAX_FRUITS, 3), dtype=np.float32)
     types    = np.zeros((MAX_FRUITS, _NUM_FRUIT_TYPES), dtype=np.float32)
     mask     = np.zeros(MAX_FRUITS, dtype=np.int8)
     for i in range(n_active):
         fruits[i, :2] = rng.uniform(0.1, 0.9, 2)
+        fruits[i, 2]  = rng.uniform(0.1, 1.0)       # normalised radius
         t = rng.integers(0, _NUM_FRUIT_TYPES)
         types[i, t] = 1.0
         mask[i] = 1
@@ -56,12 +57,12 @@ def test_size_caps_at_capacity(buf):
 def test_sample_shapes(buf):
     _fill(buf, 50)
     batch = buf.sample(16)
-    assert batch["obs"]["fruits"].shape        == (16, MAX_FRUITS, 4)
+    assert batch["obs"]["fruits"].shape        == (16, MAX_FRUITS, 3)
     assert batch["obs"]["fruit_types"].shape   == (16, MAX_FRUITS, _NUM_FRUIT_TYPES)
     assert batch["obs"]["fruit_mask"].shape    == (16, MAX_FRUITS)
     assert batch["obs"]["current_fruit"].shape == (16,)
     assert batch["obs"]["next_fruit"].shape    == (16,)
-    assert batch["next_obs"]["fruits"].shape   == (16, MAX_FRUITS, 4)
+    assert batch["next_obs"]["fruits"].shape   == (16, MAX_FRUITS, 3)
     assert batch["actions"].shape              == (16,)
     assert batch["rewards"].shape              == (16,)
     assert batch["dones"].shape                == (16,)
