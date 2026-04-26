@@ -13,23 +13,25 @@ from stable_baselines3.common.callbacks import BaseCallback
 from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv
 
+from agents.ppo_features import SuikaPPOFeaturesExtractor
 from suika_env import SuikaEnv
 
 
-RESULTS_DIR = pathlib.Path("results/ppo")
+RESULTS_DIR = pathlib.Path("results/ppo_v2")
 
 
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser()
-    p.add_argument("--total_timesteps", type=int, default=300_000)
+    p.add_argument("--out_dir", type=pathlib.Path, default=RESULTS_DIR)
+    p.add_argument("--total_timesteps", type=int, default=1_000_000)
     p.add_argument("--log_freq", type=int, default=5_000)
     p.add_argument("--seed", type=int, default=42)
-    p.add_argument("--n_steps", type=int, default=1024)
+    p.add_argument("--n_steps", type=int, default=2048)
     p.add_argument("--batch_size", type=int, default=256)
-    p.add_argument("--learning_rate", type=float, default=3e-4)
+    p.add_argument("--learning_rate", type=float, default=1e-4)
     p.add_argument("--gamma", type=float, default=0.99)
     p.add_argument("--gae_lambda", type=float, default=0.95)
-    p.add_argument("--ent_coef", type=float, default=0.01)
+    p.add_argument("--ent_coef", type=float, default=0.001)
     p.add_argument("--n_envs", type=int, default=4)
     return p.parse_args()
 
@@ -133,11 +135,12 @@ def make_env(seed: int):
 
 def main() -> None:
     args = parse_args()
-    RESULTS_DIR.mkdir(parents=True, exist_ok=True)
+    out_dir = args.out_dir
+    out_dir.mkdir(parents=True, exist_ok=True)
 
     env_fns = [make_env(args.seed + i) for i in range(args.n_envs)]
     env = SubprocVecEnv(env_fns) if args.n_envs > 1 else DummyVecEnv(env_fns)
-    metrics_path = RESULTS_DIR / "metrics.csv"
+    metrics_path = out_dir / "metrics.csv"
     callback = MetricsCallback(metrics_path=metrics_path, log_freq=args.log_freq)
 
     model = PPO(
@@ -149,7 +152,11 @@ def main() -> None:
         gamma=args.gamma,
         gae_lambda=args.gae_lambda,
         ent_coef=args.ent_coef,
-        policy_kwargs={"net_arch": {"pi": [256, 256], "vf": [256, 256]}},
+        policy_kwargs={
+            "features_extractor_class": SuikaPPOFeaturesExtractor,
+            "features_extractor_kwargs": {"features_dim": 266},
+            "net_arch": {"pi": [256, 256], "vf": [256, 256]},
+        },
         seed=args.seed,
         verbose=1,
     )
@@ -157,13 +164,13 @@ def main() -> None:
     print(f"Total timesteps: {args.total_timesteps:,}")
     print(f"Envs:            {args.n_envs}")
     print(f"Rollout batch:   {args.n_steps * args.n_envs:,} transitions")
-    print(f"Results:         {RESULTS_DIR.resolve()}")
+    print(f"Results:         {out_dir.resolve()}")
     model.learn(total_timesteps=args.total_timesteps, callback=callback)
-    model.save(RESULTS_DIR / "model")
+    model.save(out_dir / "model")
     env.close()
     _save_curves(metrics_path)
-    print(f"Done. Model -> {RESULTS_DIR / 'model.zip'}")
-    print(f"Curves -> {RESULTS_DIR / 'learning_curve.png'}")
+    print(f"Done. Model -> {out_dir / 'model.zip'}")
+    print(f"Curves -> {out_dir / 'learning_curve.png'}")
 
 
 if __name__ == "__main__":
