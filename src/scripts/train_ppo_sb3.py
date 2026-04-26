@@ -31,6 +31,7 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--gae_lambda", type=float, default=0.95)
     p.add_argument("--ent_coef", type=float, default=0.01)
     p.add_argument("--n_envs", type=int, default=4)
+    p.add_argument("--out_dir", type=pathlib.Path, default=RESULTS_DIR)
     return p.parse_args()
 
 
@@ -133,11 +134,12 @@ def make_env(seed: int):
 
 def main() -> None:
     args = parse_args()
-    RESULTS_DIR.mkdir(parents=True, exist_ok=True)
+    results_dir = args.out_dir
+    results_dir.mkdir(parents=True, exist_ok=True)
 
     env_fns = [make_env(args.seed + i) for i in range(args.n_envs)]
     env = SubprocVecEnv(env_fns) if args.n_envs > 1 else DummyVecEnv(env_fns)
-    metrics_path = RESULTS_DIR / "metrics.csv"
+    metrics_path = results_dir / "metrics.csv"
     callback = MetricsCallback(metrics_path=metrics_path, log_freq=args.log_freq)
 
     model = PPO(
@@ -157,13 +159,13 @@ def main() -> None:
     print(f"Total timesteps: {args.total_timesteps:,}")
     print(f"Envs:            {args.n_envs}")
     print(f"Rollout batch:   {args.n_steps * args.n_envs:,} transitions")
-    print(f"Results:         {RESULTS_DIR.resolve()}")
+    print(f"Results:         {results_dir.resolve()}")
     model.learn(total_timesteps=args.total_timesteps, callback=callback)
-    model.save(RESULTS_DIR / "model")
+    model.save(results_dir / "model")
     env.close()
     _save_curves(metrics_path)
-    print(f"Done. Model -> {RESULTS_DIR / 'model.zip'}")
-    print(f"Curves -> {RESULTS_DIR / 'learning_curve.png'}")
+    print(f"Done. Model -> {results_dir / 'model.zip'}")
+    print(f"Curves -> {results_dir / 'learning_curve.png'}")
 
 
 if __name__ == "__main__":

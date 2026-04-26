@@ -10,7 +10,7 @@
 - [ ] **Technical walkthrough** — 5-10 minutes. Walk through code structure (`src/suika_env/`, `src/agents/`, `src/scripts/`), explain DQN internals (experience replay, target network, Bellman update), explain DeepSets Q-network design choice, show training curves + eval results.
 
 ### Submission
-- [ ] **README video links** — fill in the two `[link]` placeholders in the `## Video Links` section with actual URLs after uploading
+- [ ] **README video links** — save/upload videos and make sure the `## Video Links` section points to the final demo and walkthrough files
 - [ ] **Gradescope self-assessment** — use `self_assessment_template.docx`, claim exactly the 15 items in `CHECKLIST.md`. For each item, cite the specific file and line numbers as evidence.
 
 ---
@@ -48,7 +48,7 @@
 - [x] `SETUP.md` — step-by-step install + train + eval instructions
 - [x] `ATTRIBUTION.md` — substantive account of AI-generated vs. human-directed work
 - [x] `requirements.txt` — accurate dependency list
-- [x] `README.md` — What it Does, Quick Start, Evaluate, Evaluation (table + qualitative analysis + plots), Environment, Video Links (placeholder), Project Structure
+- [x] `README.md` — What it Does, Quick Start, Video Links, Evaluation (table + qualitative analysis + plots), Individual Contributions, Environment, Project Structure
 
 ### Category 3 — Cohesion
 - [x] README articulates single unified goal (train RL agents on custom Suika env, compare DQN vs PPO vs heuristics)

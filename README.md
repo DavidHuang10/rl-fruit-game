@@ -20,8 +20,8 @@ Human controls: arrow keys move the drop column, space drops the fruit.
 
 ## Video Links
 
-- **Demo video (3-5 min):** [link]
-- **Technical walkthrough (5-10 min):** [link]
+- **Demo video (3-5 min):** [videos/demo.mp4](videos/demo.mp4)
+- **Technical walkthrough (5-10 min):** [videos/technical_walkthrough.mp4](videos/technical_walkthrough.mp4)
 
 ## Evaluation
 
@@ -124,5 +124,6 @@ models/         Trained DQN and PPO checkpoints
 results/        Metrics, plots, logs, and evaluation summaries
 videos/         Demo and technical walkthrough videos
 docs/           Additional project notes
+scripts.md      Recording scripts for the demo and technical walkthrough
 tests/          Unit and API tests
 ```
