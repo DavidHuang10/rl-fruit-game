@@ -17,7 +17,8 @@ from .world import SuikaWorld
 os.environ.setdefault("PYGAME_HIDE_SUPPORT_PROMPT", "1")
 
 _POOL_SIZE = len(NEXT_FRUIT_POOL)
-_MAX_RADIUS = float(FRUITS[-1].radius)   # 104.0 — normalises radius to [0, 1]
+# Velocity normalisation scale (px/s) — keeps obs values near [-1, 1]
+_VEL_SCALE = 800.0
 # HUD width (px) to the right of the container
 _HUD_WIDTH = 150
 
@@ -202,7 +203,7 @@ class SuikaEnv(gym.Env):
         return spaces.Dict({
             "fruits": spaces.Box(
                 low=-np.inf, high=np.inf,
-                shape=(cfg.max_fruits, 3), dtype=np.float32,
+                shape=(cfg.max_fruits, 4), dtype=np.float32,
             ),
             "fruit_types": spaces.Box(
                 low=0.0, high=1.0,
@@ -215,7 +216,7 @@ class SuikaEnv(gym.Env):
 
     def _get_obs(self) -> Dict[str, Any]:
         cfg = self.cfg
-        fruits_arr = np.zeros((cfg.max_fruits, 3), dtype=np.float32)
+        fruits_arr = np.zeros((cfg.max_fruits, 4), dtype=np.float32)
         types_arr = np.zeros((cfg.max_fruits, NUM_FRUITS), dtype=np.float32)
         mask_arr = np.zeros(cfg.max_fruits, dtype=np.int8)
 
@@ -225,7 +226,8 @@ class SuikaEnv(gym.Env):
                 break
             fruits_arr[i, 0] = fs.x / cfg.container_width
             fruits_arr[i, 1] = fs.y / cfg.container_height
-            fruits_arr[i, 2] = FRUITS[fs.fruit_type].radius / _MAX_RADIUS
+            fruits_arr[i, 2] = fs.vx / _VEL_SCALE
+            fruits_arr[i, 3] = fs.vy / _VEL_SCALE
             types_arr[i, fs.fruit_type] = 1.0
             mask_arr[i] = 1
 

@@ -10,13 +10,12 @@ from agents.network import SuikaQNetwork, obs_to_tensor, N_ACTIONS, MAX_FRUITS, 
 def _make_obs(n_active: int = 5, batch: bool = False, B: int = 4):
     """Synthesise a realistic Dict obs (single or batched)."""
     def _single():
-        fruits = np.zeros((MAX_FRUITS, 3), dtype=np.float32)
+        fruits = np.zeros((MAX_FRUITS, 4), dtype=np.float32)
         types  = np.zeros((MAX_FRUITS, NUM_FRUIT_TYPES), dtype=np.float32)
         mask   = np.zeros(MAX_FRUITS, dtype=np.int8)
         for i in range(n_active):
             fruits[i, 0] = np.random.uniform(0.1, 0.9)   # x
             fruits[i, 1] = np.random.uniform(0.1, 0.9)   # y
-            fruits[i, 2] = np.random.uniform(0.1, 1.0)   # radius (normalised)
             t = np.random.randint(0, NUM_FRUIT_TYPES)
             types[i, t] = 1.0
             mask[i] = 1
@@ -68,12 +67,12 @@ def test_forward_no_nan(net, device):
     assert not torch.isinf(q).any()
 
 
-# ── obs_to_tensor: all three spatial features are present ─────────────────────
+# ── obs_to_tensor: velocities are dropped ────────────────────────────────────
 
-def test_fruit_features_shape(device):
+def test_velocities_dropped(device):
     obs = _make_obs(n_active=5)
     t   = obs_to_tensor(obs, device)
-    assert t["fruits"].shape[-1] == 3, "fruits tensor should have x, y, radius (3 features)"
+    assert t["fruits"].shape[-1] == 2, "vx/vy should be dropped; only x,y remain"
 
 
 # ── padding invariance ────────────────────────────────────────────────────────
@@ -81,7 +80,7 @@ def test_fruit_features_shape(device):
 def test_padding_invariance(net, device):
     """Same active fruits in different slot positions must yield identical Q-values."""
     n_active = 6
-    fruits = np.random.rand(n_active, 3).astype(np.float32)
+    fruits = np.random.rand(n_active, 4).astype(np.float32)
     types  = np.eye(NUM_FRUIT_TYPES, dtype=np.float32)[
         np.random.randint(0, NUM_FRUIT_TYPES, n_active)
     ]
@@ -89,7 +88,7 @@ def test_padding_invariance(net, device):
     # Place active fruits in slots 0..5
     def _make_with_offset(offset):
         o = {
-            "fruits":        np.zeros((MAX_FRUITS, 3), dtype=np.float32),
+            "fruits":        np.zeros((MAX_FRUITS, 4), dtype=np.float32),
             "fruit_types":   np.zeros((MAX_FRUITS, NUM_FRUIT_TYPES), dtype=np.float32),
             "fruit_mask":    np.zeros(MAX_FRUITS, dtype=np.int8),
             "current_fruit": np.int64(2),

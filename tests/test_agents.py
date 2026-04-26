@@ -88,7 +88,7 @@ def test_shared_constants_match_default_env_spaces():
     env = SuikaEnv()
     try:
         assert env.action_space.n == ACTION_COUNT
-        assert env.observation_space["fruits"].shape == (MAX_FRUITS, 3)
+        assert env.observation_space["fruits"].shape == (MAX_FRUITS, 4)
         assert env.observation_space["fruit_types"].shape == (MAX_FRUITS, NUM_FRUIT_TYPES)
         assert env.observation_space["current_fruit"].n == SPAWN_POOL_SIZE
         assert env.observation_space["next_fruit"].n == SPAWN_POOL_SIZE
