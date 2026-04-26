@@ -26,6 +26,7 @@ class SuikaWorld:
         self.rng = rng
         self._next_id: int = 0
         self._pending_merges: List[Tuple[pymunk.Body, pymunk.Body]] = []
+        self._pending_merge_ids: Set[Tuple[int, int]] = set()
         self._alive_ids: Set[int] = set()
         self._body_map: Dict[int, pymunk.Body] = {}
 
@@ -74,8 +75,9 @@ class SuikaWorld:
             return
         # Same type → schedule merge; deduplicate by sorted id pair.
         pair = (b_a, b_b) if b_a.suika_id < b_b.suika_id else (b_b, b_a)
-        ids_in_queue = {(a.suika_id, b.suika_id) for a, b in self._pending_merges}
-        if (pair[0].suika_id, pair[1].suika_id) not in ids_in_queue:
+        key = (pair[0].suika_id, pair[1].suika_id)
+        if key not in self._pending_merge_ids:
+            self._pending_merge_ids.add(key)
             self._pending_merges.append(pair)
 
     # ------------------------------------------------------------------
@@ -131,6 +133,7 @@ class SuikaWorld:
         seen: Set[Tuple[int, int]] = set()
         to_process = self._pending_merges[:]
         self._pending_merges.clear()
+        self._pending_merge_ids.clear()
 
         for b_a, b_b in to_process:
             key = (b_a.suika_id, b_b.suika_id)
@@ -236,13 +239,13 @@ class SuikaWorld:
     def serialize(self) -> List[FruitState]:
         return [
             FruitState(
-                x=self._body_map[sid].position.x,
-                y=self._body_map[sid].position.y,
-                vx=self._body_map[sid].velocity.x,
-                vy=self._body_map[sid].velocity.y,
-                fruit_type=self._body_map[sid].suika_type,
+                x=body.position.x,
+                y=body.position.y,
+                vx=body.velocity.x,
+                vy=body.velocity.y,
+                fruit_type=body.suika_type,
             )
-            for sid in sorted(self._alive_ids)
+            for body in self._body_map.values()
         ]
 
     @property

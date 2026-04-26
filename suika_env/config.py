@@ -34,7 +34,7 @@ class EnvConfig:
     # Settle detection
     settle_ke_threshold: float = 50.0
     settle_stable_frames: int = 8
-    max_physics_steps_per_action: int = 600  # safety cap (~10 s at 60 fps)
+    max_physics_steps_per_action: int = 300  # safety cap (~5 s at 60 fps)
 
     # Scoring
     watermelon_merge_score: int = 66
