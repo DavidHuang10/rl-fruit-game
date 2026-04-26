@@ -23,36 +23,6 @@ Human controls: arrow keys move the drop column, space drops the fruit.
 - **Demo video (3-5 min):** [link]
 - **Technical walkthrough (5-10 min):** [link]
 
-## Train
-
-```bash
-# DQN
-uv run python scripts/train_dqn.py
-
-# PPO
-uv run python scripts/train_ppo_sb3.py
-```
-
-Cluster jobs:
-
-```bash
-sbatch scripts/train_dqn_slurm.sh
-sbatch scripts/train_ppo_slurm.sh
-```
-
-Outputs are written to `results/dqn/` and `results/ppo/`.
-
-## Evaluate
-
-```bash
-uv run python scripts/eval_agent.py --agent random --episodes 50
-uv run python scripts/eval_agent.py --agent center --episodes 50
-uv run python scripts/eval_agent.py --agent dqn --checkpoint models/dqn/model.pt --episodes 50
-uv run python scripts/eval_agent.py --agent ppo --checkpoint models/ppo/model.zip --episodes 50
-```
-
-Evaluation writes per-episode CSVs and summary JSON files to `results/eval/`.
-
 ## Evaluation
 
 Each agent was evaluated for 50 complete episodes with the same environment and metrics. Episode return is the total RL reward collected from fruit merges. Final score is the game score at termination; in this environment it matches episode return because reward is based on merge score. Episode length measures how many fruit drops the agent survived, and final fruit count measures how crowded the board was at the end.
@@ -83,6 +53,40 @@ Training curves:
 ![DQN learning curve](results/dqn/learning_curve.png)
 
 ![PPO learning curve](results/ppo/learning_curve.png)
+
+## Individual Contributions
+
+Completed individually by David Huang.
+
+## Train
+
+```bash
+# DQN
+uv run python scripts/train_dqn.py
+
+# PPO
+uv run python scripts/train_ppo_sb3.py
+```
+
+Cluster jobs:
+
+```bash
+sbatch scripts/train_dqn_slurm.sh
+sbatch scripts/train_ppo_slurm.sh
+```
+
+Outputs are written to `results/dqn/` and `results/ppo/`.
+
+## Evaluate
+
+```bash
+uv run python scripts/eval_agent.py --agent random --episodes 50
+uv run python scripts/eval_agent.py --agent center --episodes 50
+uv run python scripts/eval_agent.py --agent dqn --checkpoint models/dqn/model.pt --episodes 50
+uv run python scripts/eval_agent.py --agent ppo --checkpoint models/ppo/model.zip --episodes 50
+```
+
+Evaluation writes per-episode CSVs and summary JSON files to `results/eval/`.
 
 ## Environment
 
@@ -122,7 +126,3 @@ videos/         Demo and technical walkthrough videos
 docs/           Additional project notes
 tests/          Unit and API tests
 ```
-
-## Individual Contributions
-
-Completed individually by David Huang.
