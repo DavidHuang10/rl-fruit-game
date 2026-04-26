@@ -6,7 +6,7 @@
 
 ## AI-Generated Components
 
-All code in `suika_env/`, `scripts/`, and `agents/` was generated with Claude Code under David's direction. Each file carries a file-level comment indicating this.
+All code in `src/suika_env/`, `src/scripts/`, and `src/agents/` was generated with Claude Code under David's direction. Compatibility launchers remain in top-level `scripts/`.
 
 ## User Contributions
 

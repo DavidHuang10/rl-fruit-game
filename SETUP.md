@@ -60,8 +60,8 @@ Logs/checkpoints are written under `results/dqn/` and `results/ppo/`.
 ```bash
 uv run python scripts/eval_agent.py --agent random --episodes 50
 uv run python scripts/eval_agent.py --agent center --episodes 50
-uv run python scripts/eval_agent.py --agent dqn --checkpoint results/dqn/model.pt --episodes 50
-uv run python scripts/eval_agent.py --agent ppo --checkpoint results/ppo/model.zip --episodes 50
+uv run python scripts/eval_agent.py --agent dqn --checkpoint models/dqn/model.pt --episodes 50
+uv run python scripts/eval_agent.py --agent ppo --checkpoint models/ppo/model.zip --episodes 50
 ```
 
 Metrics saved:
@@ -72,4 +72,4 @@ Metrics saved:
 - final fruit count
 - final physics-frame count
 
-Outputs go to `results/eval/`.
+Outputs go to `results/eval/`. Legacy checkpoint paths under `results/dqn/` and `results/ppo/` are compatibility links to `models/`.

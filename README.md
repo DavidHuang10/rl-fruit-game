@@ -18,6 +18,11 @@ uv run python scripts/play_human.py
 
 Human controls: arrow keys move the drop column, space drops the fruit.
 
+## Video Links
+
+- **Demo video (3-5 min):** [link]
+- **Technical walkthrough (5-10 min):** [link]
+
 ## Train
 
 ```bash
@@ -42,8 +47,8 @@ Outputs are written to `results/dqn/` and `results/ppo/`.
 ```bash
 uv run python scripts/eval_agent.py --agent random --episodes 50
 uv run python scripts/eval_agent.py --agent center --episodes 50
-uv run python scripts/eval_agent.py --agent dqn --checkpoint results/dqn/model.pt --episodes 50
-uv run python scripts/eval_agent.py --agent ppo --checkpoint results/ppo/model.zip --episodes 50
+uv run python scripts/eval_agent.py --agent dqn --checkpoint models/dqn/model.pt --episodes 50
+uv run python scripts/eval_agent.py --agent ppo --checkpoint models/ppo/model.zip --episodes 50
 ```
 
 Evaluation writes per-episode CSVs and summary JSON files to `results/eval/`.
@@ -104,17 +109,20 @@ Key design decisions and their justifications:
 - **Dict observation space over pixel observations.** Structured state (positions, types, velocities) trains orders of magnitude faster than pixels on CPU/MPS and makes the learned representations more interpretable.
 - **SB3 PPO over a custom PPO implementation.** PPO was chosen to compare a library agent against the custom DQN under identical environment conditions, not to demonstrate implementation depth. Using SB3 keeps that comparison clean.
 
-## Video Links
-
-- **Demo video:** [link]
-- **Technical walkthrough:** [link]
-
 ## Project Structure
 
 ```text
-suika_env/   Gymnasium environment and physics
-agents/      DQN, replay buffer, network, baseline agents
-scripts/     Training, evaluation, human play, Slurm jobs
-tests/       Unit and API tests
-results/     Checkpoints, metrics, plots, eval summaries
+src/suika_env/  Gymnasium environment and physics
+src/agents/     DQN, replay buffer, network, PPO wrapper, baseline agents
+src/scripts/    Training, evaluation, comparison, and play/watch implementations
+scripts/        Compatibility launchers and Slurm jobs used by Quick Start
+models/         Trained DQN and PPO checkpoints
+results/        Metrics, plots, logs, and evaluation summaries
+videos/         Demo and technical walkthrough videos
+docs/           Additional project notes
+tests/          Unit and API tests
 ```
+
+## Individual Contributions
+
+Completed individually by David Huang.
