@@ -1,45 +1,9 @@
 
-## DQN run — 2026-04-25 15:40
+## DQN v1 — 2026-04-25 (smoke tests, discarded)
 
-**Config**
-- total_steps: 2,000
-- warmup: 500
-- buffer_cap: 100,000
-- batch_size: 128
-- grad_freq: every 4 env steps
-- device: mps
-- network: SuikaQNetwork (per-fruit MLP 13→128→128, mean+max pool, head 266→256→256→32)
-- algorithm: Double DQN, γ=0.99, Adam lr=3e-4 cosine→1e-5, grad_clip=10, target_sync=1000 grad steps
-- reward: raw (no scaling), Huber loss
-- epsilon: 1.0→0.05 over 100k env steps
+Two short local smoke tests (2k steps each) on MPS to verify the training loop ran end-to-end. Results not meaningful — both runs were in warmup the entire time.
 
-**Results**
-*(fill in after run: final mean return, game score, steps/ep, convergence step)*
-
-**What changed vs. prior runs**
-*(fill in)*
-
-## DQN run — 2026-04-25 15:42
-
-**Config**
-- total_steps: 2,000
-- warmup: 500
-- buffer_cap: 100,000
-- batch_size: 128
-- grad_freq: every 4 env steps
-- device: mps
-- network: SuikaQNetwork (per-fruit MLP 13→128→128, mean+max pool, head 266→256→256→32)
-- algorithm: Double DQN, γ=0.99, Adam lr=3e-4 cosine→1e-5, grad_clip=10, target_sync=1000 grad steps
-- reward: raw (no scaling), Huber loss
-- epsilon: 1.0→0.05 over 100k env steps
-
-**Results**
-*(fill in after run: final mean return, game score, steps/ep, convergence step)*
-
-**What changed vs. prior runs**
-*(fill in)*
-
-## DQN run — 2026-04-25 18:30
+## DQN v1 — 2026-04-25 18:30 (production run, cluster CUDA)
 
 **Config**
 - total_steps: 500,000
@@ -54,8 +18,14 @@
 - reward: raw (no scaling), Huber loss
 - epsilon: 1.0→0.05 over 100k env steps
 
-**Results**
-*(fill in after run: final mean return, game score, steps/ep, convergence step)*
+**Results (50-episode eval, results/dqn/)**
+- Mean episode return: 4085.6 ± 786.9
+- Mean episode length: 304.3 ± 47.4
+- Mean final fruits: 42.1 ± 4.2
+- Learning curve: returns rose steadily from ~2200 at 5k steps to ~3900 by 400k steps, then plateaued. Final 50k steps oscillated between 3846–3965 as cosine LR decayed to 1e-5.
 
 **What changed vs. prior runs**
-*(fill in)*
+First full production run. Baseline for all future DQN iterations.
+
+**Observations driving next iteration**
+The learning curve shows a plateau in the final 100k steps as the cosine LR schedule bottomed out at 1e-5. Returns were still slowly improving at step 400k (3681→3882), suggesting the initial lr=3e-4 was too conservative to fully exploit the available training budget. Additionally, the high eval variance (±787) indicates occasional episode collapses from the trapped-fruit failure mode. Next run will test lr=3e-3 (10x) to see if faster early optimization reaches a stronger policy within a shorter 300k-step budget.

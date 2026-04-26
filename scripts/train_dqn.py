@@ -27,20 +27,21 @@ from agents.dqn import DQNAgent
 from agents.replay_buffer import DictReplayBuffer
 
 
-RESULTS_DIR = pathlib.Path("results/dqn")
-
-
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser()
-    p.add_argument("--total_steps",   type=int,   default=500_000)
-    p.add_argument("--warmup",        type=int,   default=5_000)
-    p.add_argument("--buffer_cap",    type=int,   default=100_000)
-    p.add_argument("--batch_size",    type=int,   default=128)
-    p.add_argument("--grad_freq",     type=int,   default=4,      help="gradient step every N env steps")
-    p.add_argument("--log_freq",      type=int,   default=5_000,  help="log interval (env steps)")
-    p.add_argument("--ckpt_freq",     type=int,   default=50_000, help="checkpoint interval (env steps)")
-    p.add_argument("--n_envs",        type=int,   default=1,      help="parallel environments via AsyncVectorEnv")
-    p.add_argument("--seed",          type=int,   default=42)
+    p.add_argument("--total_steps",      type=int,   default=500_000)
+    p.add_argument("--warmup",           type=int,   default=5_000)
+    p.add_argument("--buffer_cap",       type=int,   default=100_000)
+    p.add_argument("--batch_size",       type=int,   default=128)
+    p.add_argument("--lr",               type=float, default=3e-4,   help="Adam initial learning rate")
+    p.add_argument("--eps_decay_steps",  type=int,   default=100_000, help="env steps over which epsilon decays")
+    p.add_argument("--eps_end",          type=float, default=0.05,   help="final epsilon for epsilon-greedy")
+    p.add_argument("--grad_freq",        type=int,   default=4,      help="gradient step every N env steps")
+    p.add_argument("--log_freq",         type=int,   default=5_000,  help="log interval (env steps)")
+    p.add_argument("--ckpt_freq",        type=int,   default=50_000, help="checkpoint interval (env steps)")
+    p.add_argument("--n_envs",           type=int,   default=1,      help="parallel environments via AsyncVectorEnv")
+    p.add_argument("--seed",             type=int,   default=42)
+    p.add_argument("--out_dir",          type=str,   default="results/dqn", help="output directory for model and metrics")
     return p.parse_args()
 
 
@@ -51,22 +52,19 @@ def _crossed(env_steps: int, n_envs: int, freq: int) -> bool:
 
 def _save_curves(metrics_path: pathlib.Path) -> None:
     """Read metrics.csv and write learning_curve.png alongside it."""
-    env_steps, ep_returns, losses = [], [], []
+    env_steps, ep_returns, ep_lengths = [], [], []
     with open(metrics_path) as f:
         for row in csv.DictReader(f):
             env_steps.append(int(row["env_step"]))
             ep_returns.append(float(row["mean_ep_return"]))
-            if row["mean_loss"]:
-                losses.append(float(row["mean_loss"]))
-            else:
-                losses.append(float("nan"))
+            ep_lengths.append(float(row["mean_ep_length"]))
 
     fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(10, 8), sharex=True)
     ax1.plot(env_steps, ep_returns, linewidth=1)
     ax1.set_ylabel("Mean episode return (last 100 eps)")
     ax1.set_title("DQN — Suika training curves")
-    ax2.plot(env_steps, losses, linewidth=1, color="orange")
-    ax2.set_ylabel("Mean Huber loss")
+    ax2.plot(env_steps, ep_lengths, linewidth=1, color="orange")
+    ax2.set_ylabel("Mean episode length (last 100 eps)")
     ax2.set_xlabel("Env steps")
     fig.tight_layout()
     fig.savefig(metrics_path.parent / "learning_curve.png", dpi=150)
@@ -76,6 +74,7 @@ def _save_curves(metrics_path: pathlib.Path) -> None:
 def main() -> None:
     args = parse_args()
     n_envs = args.n_envs
+    RESULTS_DIR = pathlib.Path(args.out_dir)
     RESULTS_DIR.mkdir(parents=True, exist_ok=True)
 
     np.random.seed(args.seed)
@@ -90,6 +89,9 @@ def main() -> None:
 
     agent  = DQNAgent(
         batch_size=args.batch_size,
+        lr=args.lr,
+        eps_decay_steps=args.eps_decay_steps,
+        eps_end=args.eps_end,
         total_grad_steps=max(1, (args.total_steps - args.warmup) // args.grad_freq),
     )
     buffer = DictReplayBuffer(capacity=args.buffer_cap)
@@ -223,33 +225,35 @@ def main() -> None:
     print(f"\nDone. Model → {RESULTS_DIR / 'model.pt'}")
     print(f"Curves → {RESULTS_DIR / 'learning_curve.png'}")
 
-    _write_experiment_log(args, agent)
+    _write_experiment_log(args, agent, RESULTS_DIR)
 
 
-def _write_experiment_log(args: argparse.Namespace, agent: DQNAgent) -> None:
+def _write_experiment_log(args: argparse.Namespace, agent: DQNAgent, out_dir: pathlib.Path) -> None:
     """Append run summary to notes/experiments.md per CLAUDE.md requirement."""
     log_path = pathlib.Path("notes/experiments.md")
     log_path.parent.mkdir(exist_ok=True)
     from datetime import datetime
     ts = datetime.now().strftime("%Y-%m-%d %H:%M")
     entry = f"""
-## DQN run — {ts}
+## DQN run — {ts} (out_dir: {out_dir})
 
 **Config**
 - total_steps: {args.total_steps:,}
 - warmup: {args.warmup:,}
 - buffer_cap: {args.buffer_cap:,}
 - batch_size: {args.batch_size}
+- lr: {args.lr:.2e} (cosine → 1e-5)
+- eps_decay_steps: {args.eps_decay_steps:,}
+- eps_end: {args.eps_end}
 - grad_freq: every {args.grad_freq} env steps
 - n_envs: {args.n_envs}
 - device: {agent.device}
 - network: SuikaQNetwork (per-fruit MLP 13→128→128, mean+max pool, head 266→256→256→32)
-- algorithm: Double DQN, γ=0.99, Adam lr=3e-4 cosine→1e-5, grad_clip=10, target_sync=1000 grad steps
+- algorithm: Double DQN, γ=0.99, grad_clip=10, target_sync=1000 grad steps
 - reward: raw (no scaling), Huber loss
-- epsilon: 1.0→0.05 over 100k env steps
 
 **Results**
-*(fill in after run: final mean return, game score, steps/ep, convergence step)*
+*(fill in after eval: mean return ± std, episode length, final fruits)*
 
 **What changed vs. prior runs**
 *(fill in)*

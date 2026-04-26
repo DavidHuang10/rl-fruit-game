@@ -103,23 +103,20 @@ class MetricsCallback(BaseCallback):
 
 
 def _save_curves(metrics_path: pathlib.Path) -> None:
-    env_steps, ep_returns, ep_scores, ep_lengths = [], [], [], []
+    env_steps, ep_returns, ep_lengths = [], [], []
     with open(metrics_path) as f:
         for row in csv.DictReader(f):
             env_steps.append(int(row["env_step"]))
             ep_returns.append(float(row["mean_ep_return"]))
-            ep_scores.append(float(row["mean_ep_score"]))
             ep_lengths.append(float(row["mean_ep_length"]))
 
-    fig, axes = plt.subplots(3, 1, figsize=(10, 9), sharex=True)
+    fig, axes = plt.subplots(2, 1, figsize=(10, 8), sharex=True)
     axes[0].plot(env_steps, ep_returns, linewidth=1)
-    axes[0].set_ylabel("Mean return")
+    axes[0].set_ylabel("Mean episode return (last 100 eps)")
     axes[0].set_title("PPO - Suika training curves")
-    axes[1].plot(env_steps, ep_scores, linewidth=1, color="green")
-    axes[1].set_ylabel("Mean score")
-    axes[2].plot(env_steps, ep_lengths, linewidth=1, color="orange")
-    axes[2].set_ylabel("Mean length")
-    axes[2].set_xlabel("Env steps")
+    axes[1].plot(env_steps, ep_lengths, linewidth=1, color="orange")
+    axes[1].set_ylabel("Mean episode length (last 100 eps)")
+    axes[1].set_xlabel("Env steps")
     fig.tight_layout()
     fig.savefig(metrics_path.parent / "learning_curve.png", dpi=150)
     plt.close(fig)

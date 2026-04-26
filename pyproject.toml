@@ -16,6 +16,10 @@ dependencies = [
 
 [project.scripts]
 play = "scripts.play_human:main"
+watch-dqn = "scripts.watch_agent:main_dqn"
+watch-ppo = "scripts.watch_agent:main_ppo"
+watch-center = "scripts.watch_agent:main_center"
+watch-random = "scripts.watch_agent:main_random"
 
 [dependency-groups]
 dev = [

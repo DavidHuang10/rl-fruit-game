@@ -20,8 +20,8 @@
 | ✅ | 9  | Custom Gymnasium environment + reward justification | 7 | `suika_env/` — Suika env with merge-score reward |
 | ✅ | 10 | Used PPO through library (SB3), meaningfully configured | 5 | `scripts/train_ppo_sb3.py` — SB3 PPO `MultiInputPolicy`, n_steps, batch_size, lr, GAE, entropy coef, 4 envs, custom pi/vf net_arch; artifacts in `results/ppo/` |
 | ✅ | 11 | 3+ distinct evaluation metrics | 3 | `scripts/eval_agent.py` — episode return, game score, episode length, final fruit count, physics frames |
-| ⬜ | 12 | Compared multiple approaches quantitatively | 7 | `results/eval/*_summary.json` has all 4 agents, but DQN/PPO are preliminary 1-episode evals; still need final 50-episode table/plot |
-| ⬜ | 13 | Qualitative + quantitative evaluation | 5 | README Evaluation section — behavioral analysis + failure modes |
+| ✅ | 12 | Compared multiple approaches quantitatively | 7 | README Evaluation table (all 4 agents, 50 episodes each); `results/eval/comparison.png` bar chart with error bars; `scripts/compare_agents.py` |
+| ✅ | 13 | Qualitative + quantitative evaluation | 5 | README Evaluation section — quantitative table + behavioral analysis + failure modes for each agent |
 | ✅ | 14 | Regularization / training stabilization | 5 | `agents/dqn.py` — Adam L2 weight decay (`weight_decay=1e-5`), gradient clipping (`clip_grad_norm_`), Huber loss; PPO entropy coefficient in `scripts/train_ppo_sb3.py` |
 | ✅ | 15 | Completed project individually | 10 | — |
 
@@ -41,7 +41,4 @@
 
 ## Still To Build
 
-1. Re-run DQN/PPO evaluation with the final cluster checkpoints, preferably matching the 50-episode baseline evals — item 12
-2. `scripts/compare_agents.py` or equivalent generated comparison table/plot from the four eval summaries — item 12
-3. README Evaluation section write-up with quantitative table plus qualitative behavior/failure-mode analysis — item 13
-4. Demo video, technical walkthrough, and Gradescope self-assessment
+1. Demo video, technical walkthrough, and Gradescope self-assessment
