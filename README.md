@@ -10,11 +10,15 @@ The environment simulates a turn-based Suika puzzle game: the agent chooses one 
 
 ```bash
 uv sync
-uv run pytest tests/ -v
+
+# play the game yourself (arrow keys to move, space to drop)
 uv run python scripts/play_human.py
+
+# watch a trained agent
+uv run python scripts/watch_agent.py --agent dqn --episodes 1
 ```
 
-Human controls: arrow keys move the drop column, space drops the fruit. See `SETUP.md` for training and evaluation instructions.
+See `SETUP.md` for training, evaluation, and cluster instructions.
 
 ## Video Links
 
@@ -54,4 +58,4 @@ Training curves:
 
 ## Individual Contributions
 
-Completed individually by me.
+Completed individually by David Huang.
