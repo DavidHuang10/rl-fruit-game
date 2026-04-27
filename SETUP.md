@@ -21,10 +21,19 @@ pytest tests/ -v
 ## Play
 
 ```bash
-uv run play
+uv run python scripts/play_human.py
 ```
 
 Arrow keys move the drop column. Space drops the fruit.
+
+## Watch a Trained Agent
+
+```bash
+uv run python scripts/watch_agent.py --agent dqn --episodes 1
+uv run python scripts/watch_agent.py --agent ppo --episodes 1
+uv run python scripts/watch_agent.py --agent random --episodes 1
+uv run python scripts/watch_agent.py --agent center --episodes 1
+```
 
 ## Local Training
 
@@ -71,4 +80,4 @@ Metrics saved:
 - final fruit count
 - final physics-frame count
 
-Outputs go to `results/eval/`. Legacy checkpoint paths under `results/dqn/` and `results/ppo/` are compatibility links to `models/`.
+Outputs go to `results/eval/`.
