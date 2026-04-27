@@ -19,7 +19,7 @@ Human controls: arrow keys move the drop column, space drops the fruit. See `SET
 ## Video Links
 
 - **Demo video (3-5 min):** [Watch on YouTube](https://youtu.be/x3xDY4vmC5w)
-- **Technical walkthrough (5-10 min):** [Watch on YouTube](https://youtu.be/f5qnqIoays8)
+- **Technical walkthrough (5-10 min):** [Watch on YouTube](https://youtu.be/vJUOVSMGyh8)
 
 ## Evaluation
 
