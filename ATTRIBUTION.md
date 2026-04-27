@@ -12,7 +12,7 @@ I am responsible for the final submitted code, experiments, documentation, and r
 - `src/agents/`: AI helped implement the DQN training logic, DeepSets-style Q-network, replay buffer, PPO loading wrapper, and random/center baseline agents.
 - `src/scripts/` and top-level `scripts/`: AI helped draft training scripts, evaluation scripts, comparison plotting, watch/play modes, compatibility wrappers, and Slurm scripts.
 - `tests/`: AI helped draft unit tests and Gymnasium API tests. I used these tests to check environment behavior, replay buffer sampling, network output shapes, and agent loading behavior.
-- Documentation files, including `README.md`, `SETUP.md`, `CHECKLIST.md`, `TODO.md`, and `scripts.md`, were written and polished with AI assistance.
+- Documentation files, including `README.md`, `SETUP.md`, and `ATTRIBUTION.md`, were written and polished with AI assistance.
 
 ## What I Directed or Modified
 

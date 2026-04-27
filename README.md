@@ -4,9 +4,7 @@ Suika-style fruit merging implemented as a custom Gymnasium environment, with DQ
 
 ## What It Does
 
-The environment simulates a turn-based Suika puzzle game. The agent chooses one of 32 drop columns, physics resolves, matching fruits merge into larger fruits, and the episode ends when the stack crosses the danger line. Rewards are based on merge score only.
-
-This project applies deep reinforcement learning to a physics-based puzzle game, following the approach pioneered by Mnih et al. (2015) in playing Atari games from raw state. Like the original DQN work, the central question is whether an agent can discover non-trivial game strategies — here, fruit-size differentiation and merge targeting — purely from reward signal without hand-coded heuristics. A custom Gymnasium environment was built from scratch so that both a custom DQN and a library PPO (Schulman et al., 2017) could be trained and compared under identical conditions.
+The environment simulates a turn-based Suika puzzle game: the agent chooses one of 32 drop columns, physics resolves, matching fruits merge into larger fruits, and the episode ends when the stack crosses the danger line, with rewards based on merge score only. This project applies deep reinforcement learning to that setting, following the approach pioneered by Mnih et al. (2015) in playing Atari games from raw state — the central question is whether an agent can discover non-trivial strategies such as fruit-size differentiation and merge targeting purely from reward signal, without hand-coded heuristics. A custom Gymnasium environment was built from scratch so that both a custom DQN and a library PPO (Schulman et al., 2017) could be trained and compared under identical conditions.
 
 ## Quick Start
 
@@ -16,7 +14,7 @@ uv run pytest tests/ -v
 uv run python scripts/play_human.py
 ```
 
-Human controls: arrow keys move the drop column, space drops the fruit.
+Human controls: arrow keys move the drop column, space drops the fruit. See `SETUP.md` for training and evaluation instructions.
 
 ## Video Links
 
@@ -57,73 +55,3 @@ Training curves:
 ## Individual Contributions
 
 Completed individually by me.
-
-## Train
-
-```bash
-# DQN
-uv run python scripts/train_dqn.py
-
-# PPO
-uv run python scripts/train_ppo_sb3.py
-```
-
-Cluster jobs:
-
-```bash
-sbatch scripts/train_dqn_slurm.sh
-sbatch scripts/train_ppo_slurm.sh
-```
-
-Outputs are written to `results/dqn/` and `results/ppo/`.
-
-## Evaluate
-
-```bash
-uv run python scripts/eval_agent.py --agent random --episodes 50
-uv run python scripts/eval_agent.py --agent center --episodes 50
-uv run python scripts/eval_agent.py --agent dqn --checkpoint models/dqn/model.pt --episodes 50
-uv run python scripts/eval_agent.py --agent ppo --checkpoint models/ppo/model.zip --episodes 50
-```
-
-Evaluation writes per-episode CSVs and summary JSON files to `results/eval/`.
-
-## Environment
-
-```python
-import gymnasium as gym
-import suika_env
-
-env = gym.make("suika_env/SuikaEnv-v0")
-obs, info = env.reset(seed=42)
-obs, reward, terminated, truncated, info = env.step(action)
-```
-
-| Property | Value |
-|---|---|
-| Action space | `Discrete(32)` drop column |
-| Observation | Dict with padded fruit positions/types, fruit mask, current fruit, next fruit |
-| Reward | Merge score gained after the drop |
-| Termination | Fruit stack crosses the danger line |
-
-Key design decisions and their justifications:
-
-- **Merge-score reward only.** The Suika game score is exactly the accumulated merge score, so this reward is a direct proxy for game performance with no shaping needed. A survival bonus was not added because longer survival is already a natural consequence of merging well — the board stays lower and the episode continues longer — so adding it would create a redundant secondary objective that could interfere with learning.
-- **DeepSets architecture for the Q-network.** The observation is a variable-length set of fruits with no natural ordering. A per-fruit MLP with mean+max pooling (DeepSets, Zaheer et al. 2017) is permutation-invariant by construction, making it the natural fit over a flat MLP that would be sensitive to fruit ordering.
-- **Dict observation space over pixel observations.** Structured state (positions, types, velocities) trains orders of magnitude faster than pixels on CPU/MPS and makes the learned representations more interpretable.
-- **SB3 PPO over a custom PPO implementation.** PPO was chosen to compare a library agent against the custom DQN under identical environment conditions, not to demonstrate implementation depth. Using SB3 keeps that comparison clean.
-
-## Project Structure
-
-```text
-src/suika_env/  Gymnasium environment and physics
-src/agents/     DQN, replay buffer, network, PPO wrapper, baseline agents
-src/scripts/    Training, evaluation, comparison, and play/watch implementations
-scripts/        Compatibility launchers and Slurm jobs used by Quick Start
-models/         Trained DQN and PPO checkpoints
-results/        Metrics, plots, logs, and evaluation summaries
-videos/         Demo and technical walkthrough videos
-docs/           Additional project notes
-scripts.md      Recording scripts for the demo and technical walkthrough
-tests/          Unit and API tests
-```
