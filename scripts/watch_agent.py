@@ -1,3 +1,4 @@
+# AI-assisted wrapper for watching agents; used for qualitative evaluation clips.
 from __future__ import annotations
 
 import runpy

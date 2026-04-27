@@ -1,3 +1,4 @@
+# NOTE: I edited these parameters to match how I thought the original game appeared, editing ACTION_COUNT (space action), etc.
 """Shared environment dimensions and action/fruit counts."""
 
 NUM_FRUIT_TYPES = 11

@@ -1,5 +1,4 @@
-# Generated with Claude Code (claude-sonnet-4-6). Training loop, hyperparameters, and
-# evaluation cadence directed by David Huang.
+# AI-assisted DQN training script; loop structure, hyperparameters, and evaluation cadence directed and reviewed by me.
 
 """Train a Double DQN agent on SuikaEnv.
 
@@ -18,6 +17,7 @@ import pathlib
 import time
 
 import matplotlib
+
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
@@ -29,19 +29,39 @@ from agents.replay_buffer import DictReplayBuffer
 
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser()
-    p.add_argument("--total_steps",      type=int,   default=500_000)
-    p.add_argument("--warmup",           type=int,   default=5_000)
-    p.add_argument("--buffer_cap",       type=int,   default=100_000)
-    p.add_argument("--batch_size",       type=int,   default=128)
-    p.add_argument("--lr",               type=float, default=3e-4,   help="Adam initial learning rate")
-    p.add_argument("--eps_decay_steps",  type=int,   default=100_000, help="env steps over which epsilon decays")
-    p.add_argument("--eps_end",          type=float, default=0.05,   help="final epsilon for epsilon-greedy")
-    p.add_argument("--grad_freq",        type=int,   default=4,      help="gradient step every N env steps")
-    p.add_argument("--log_freq",         type=int,   default=5_000,  help="log interval (env steps)")
-    p.add_argument("--ckpt_freq",        type=int,   default=50_000, help="checkpoint interval (env steps)")
-    p.add_argument("--n_envs",           type=int,   default=1,      help="parallel environments via AsyncVectorEnv")
-    p.add_argument("--seed",             type=int,   default=42)
-    p.add_argument("--out_dir",          type=str,   default="results/dqn", help="output directory for model and metrics")
+    p.add_argument("--total_steps", type=int, default=500_000)
+    p.add_argument("--warmup", type=int, default=5_000)
+    p.add_argument("--buffer_cap", type=int, default=100_000)
+    p.add_argument("--batch_size", type=int, default=128)
+    p.add_argument("--lr", type=float, default=3e-4, help="Adam initial learning rate")
+    p.add_argument(
+        "--eps_decay_steps",
+        type=int,
+        default=100_000,
+        help="env steps over which epsilon decays",
+    )
+    p.add_argument(
+        "--eps_end", type=float, default=0.05, help="final epsilon for epsilon-greedy"
+    )
+    p.add_argument(
+        "--grad_freq", type=int, default=4, help="gradient step every N env steps"
+    )
+    p.add_argument(
+        "--log_freq", type=int, default=5_000, help="log interval (env steps)"
+    )
+    p.add_argument(
+        "--ckpt_freq", type=int, default=50_000, help="checkpoint interval (env steps)"
+    )
+    p.add_argument(
+        "--n_envs", type=int, default=1, help="parallel environments via AsyncVectorEnv"
+    )
+    p.add_argument("--seed", type=int, default=42)
+    p.add_argument(
+        "--out_dir",
+        type=str,
+        default="results/dqn",
+        help="output directory for model and metrics",
+    )
     return p.parse_args()
 
 
@@ -71,6 +91,7 @@ def _save_curves(metrics_path: pathlib.Path) -> None:
     plt.close(fig)
 
 
+# NOTE: I designed the architecture of the training, including how to log, warmup period, and usage of the buffer. These details were edited, polished, and tested using Claude Code.
 def main() -> None:
     args = parse_args()
     n_envs = args.n_envs
@@ -81,13 +102,14 @@ def main() -> None:
 
     if n_envs > 1:
         from gymnasium.vector import AsyncVectorEnv
+
         env = AsyncVectorEnv([lambda: SuikaEnv() for _ in range(n_envs)])
         obs, _ = env.reset(seed=list(range(args.seed, args.seed + n_envs)))
     else:
         env = SuikaEnv()
         obs, _ = env.reset(seed=args.seed)
 
-    agent  = DQNAgent(
+    agent = DQNAgent(
         batch_size=args.batch_size,
         lr=args.lr,
         eps_decay_steps=args.eps_decay_steps,
@@ -103,21 +125,30 @@ def main() -> None:
 
     metrics_path = RESULTS_DIR / "metrics.csv"
     csv_file = open(metrics_path, "w", newline="")
-    writer = csv.DictWriter(csv_file, fieldnames=[
-        "env_step", "mean_ep_return", "mean_ep_score", "mean_ep_length",
-        "mean_merges", "mean_loss", "epsilon", "lr",
-    ])
+    writer = csv.DictWriter(
+        csv_file,
+        fieldnames=[
+            "env_step",
+            "mean_ep_return",
+            "mean_ep_score",
+            "mean_ep_length",
+            "mean_merges",
+            "mean_loss",
+            "epsilon",
+            "lr",
+        ],
+    )
     writer.writeheader()
 
     ep_returns: collections.deque[float] = collections.deque(maxlen=100)
-    ep_scores:  collections.deque[float] = collections.deque(maxlen=100)
-    ep_lengths: collections.deque[int]   = collections.deque(maxlen=100)
-    recent_losses: list[float]           = []
+    ep_scores: collections.deque[float] = collections.deque(maxlen=100)
+    ep_lengths: collections.deque[int] = collections.deque(maxlen=100)
+    recent_losses: list[float] = []
 
     # scalar for single env, array for vectorized — keeps types clean
     if n_envs > 1:
         ep_ret: float | np.ndarray = np.zeros(n_envs)
-        ep_len: int | np.ndarray   = np.zeros(n_envs, dtype=int)
+        ep_len: int | np.ndarray = np.zeros(n_envs, dtype=int)
     else:
         ep_ret = 0.0
         ep_len = 0
@@ -134,10 +165,12 @@ def main() -> None:
         if in_warmup:
             action = env.action_space.sample()
         elif n_envs > 1:
-            action = np.array([
-                agent.select_action({k: v[i] for k, v in obs.items()})
-                for i in range(n_envs)
-            ])
+            action = np.array(
+                [
+                    agent.select_action({k: v[i] for k, v in obs.items()})
+                    for i in range(n_envs)
+                ]
+            )
         else:
             action = agent.select_action(obs)
 
@@ -148,9 +181,11 @@ def main() -> None:
         # ── buffer push ───────────────────────────────────────────────────
         if n_envs > 1:
             for i in range(n_envs):
-                obs_i  = {k: v[i] for k, v in obs.items()}
+                obs_i = {k: v[i] for k, v in obs.items()}
                 nobs_i = {k: v[i] for k, v in next_obs.items()}
-                buffer.push(obs_i, int(action[i]), float(reward[i]), nobs_i, bool(done[i]))
+                buffer.push(
+                    obs_i, int(action[i]), float(reward[i]), nobs_i, bool(done[i])
+                )
         else:
             buffer.push(obs, int(action), float(reward), next_obs, bool(done))
 
@@ -171,7 +206,7 @@ def main() -> None:
             if done:
                 ep_returns.append(float(ep_ret))  # type: ignore[arg-type]
                 ep_scores.append(float(info.get("score", 0.0)))
-                ep_lengths.append(int(ep_len))    # type: ignore[arg-type]
+                ep_lengths.append(int(ep_len))  # type: ignore[arg-type]
                 ep_ret = 0.0
                 ep_len = 0
                 next_obs, _ = env.reset()
@@ -179,29 +214,37 @@ def main() -> None:
         obs = next_obs
 
         # ── gradient step ─────────────────────────────────────────────────
-        if not in_warmup and iter_num % grad_iter_freq == 0 and buffer.size >= args.batch_size:
-            loss = agent.update(buffer)
+        if (
+            not in_warmup
+            and iter_num % grad_iter_freq == 0
+            and buffer.size >= args.batch_size
+        ):
+            loss = agent.update(
+                buffer
+            )  # Triggers everything -- see agents/dqn.py to see internals
             recent_losses.append(loss)
 
         # ── logging ───────────────────────────────────────────────────────
         if _crossed(env_steps, n_envs, args.log_freq):
-            mean_ret   = float(np.mean(ep_returns))    if ep_returns   else float("nan")
-            mean_score = float(np.mean(ep_scores))     if ep_scores    else float("nan")
-            mean_len   = float(np.mean(ep_lengths))    if ep_lengths   else float("nan")
-            mean_loss  = float(np.mean(recent_losses)) if recent_losses else float("nan")
+            mean_ret = float(np.mean(ep_returns)) if ep_returns else float("nan")
+            mean_score = float(np.mean(ep_scores)) if ep_scores else float("nan")
+            mean_len = float(np.mean(ep_lengths)) if ep_lengths else float("nan")
+            mean_loss = float(np.mean(recent_losses)) if recent_losses else float("nan")
             current_lr = agent.scheduler.get_last_lr()[0]
             recent_losses.clear()
 
-            writer.writerow({
-                "env_step":       env_steps,
-                "mean_ep_return": f"{mean_ret:.2f}",
-                "mean_ep_score":  f"{mean_score:.2f}",
-                "mean_ep_length": f"{mean_len:.1f}",
-                "mean_merges":    "",
-                "mean_loss":      f"{mean_loss:.6f}" if not np.isnan(mean_loss) else "",
-                "epsilon":        f"{agent.epsilon:.4f}",
-                "lr":             f"{current_lr:.2e}",
-            })
+            writer.writerow(
+                {
+                    "env_step": env_steps,
+                    "mean_ep_return": f"{mean_ret:.2f}",
+                    "mean_ep_score": f"{mean_score:.2f}",
+                    "mean_ep_length": f"{mean_len:.1f}",
+                    "mean_merges": "",
+                    "mean_loss": f"{mean_loss:.6f}" if not np.isnan(mean_loss) else "",
+                    "epsilon": f"{agent.epsilon:.4f}",
+                    "lr": f"{current_lr:.2e}",
+                }
+            )
             csv_file.flush()
 
             elapsed = time.time() - t0
@@ -228,11 +271,14 @@ def main() -> None:
     _write_experiment_log(args, agent, RESULTS_DIR)
 
 
-def _write_experiment_log(args: argparse.Namespace, agent: DQNAgent, out_dir: pathlib.Path) -> None:
-    """Append run summary to notes/experiments.md per CLAUDE.md requirement."""
+def _write_experiment_log(
+    args: argparse.Namespace, agent: DQNAgent, out_dir: pathlib.Path
+) -> None:
+    """Append a run summary to notes/experiments.md."""
     log_path = pathlib.Path("notes/experiments.md")
     log_path.parent.mkdir(exist_ok=True)
     from datetime import datetime
+
     ts = datetime.now().strftime("%Y-%m-%d %H:%M")
     entry = f"""
 ## DQN run — {ts} (out_dir: {out_dir})

@@ -1,3 +1,4 @@
+# AI-assisted wrapper for human play; final controls and usage reviewed by me.
 from __future__ import annotations
 
 import runpy

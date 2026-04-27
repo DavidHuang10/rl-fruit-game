@@ -1,3 +1,4 @@
+# AI-assisted wrapper for the comparison script; kept intentionally thin after review.
 from __future__ import annotations
 
 import runpy

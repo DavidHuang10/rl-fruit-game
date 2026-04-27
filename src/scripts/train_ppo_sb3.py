@@ -1,3 +1,4 @@
+# AI-assisted PPO training script; I researched the SubprocVecEnv to parallelize training across multiple CPU cores (physics simulation runs on cpu, which is limiting.)
 from __future__ import annotations
 
 import argparse
@@ -5,6 +6,7 @@ import csv
 import pathlib
 
 import matplotlib
+
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np

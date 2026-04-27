@@ -1,3 +1,4 @@
+# AI-assisted wrapper for evaluation; preserves a simple top-level command path.
 from __future__ import annotations
 
 import runpy

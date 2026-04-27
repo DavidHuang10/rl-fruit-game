@@ -1,4 +1,4 @@
-# Generated with Claude Code (claude-sonnet-4-6). Architecture and experiments directed by David Huang.
+# AI-assisted plotting script; comparison metrics selected by me.
 """Load per-episode CSVs for all four agents and produce a comparison bar chart with error bars."""
 from __future__ import annotations
 
@@ -65,7 +65,9 @@ def main() -> None:
     summaries = load_summaries()
 
     fig, axes = plt.subplots(1, 3, figsize=(13, 4.5))
-    fig.suptitle("Agent Comparison — 50 Episodes Each", fontsize=13, fontweight="bold", y=1.01)
+    fig.suptitle(
+        "Agent Comparison — 50 Episodes Each", fontsize=13, fontweight="bold", y=1.01
+    )
 
     for ax, (key, (title, ylabel)) in zip(axes, METRICS.items()):
         bar_chart(summaries, key, title, ylabel, ax)

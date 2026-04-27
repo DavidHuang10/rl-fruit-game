@@ -1,3 +1,4 @@
+# AI-assisted renderer, claude code + Codex.
 from __future__ import annotations
 
 from typing import TYPE_CHECKING
@@ -36,15 +37,17 @@ def render_frame(
     t = cfg.wall_thickness
 
     # Container walls
-    pygame.draw.rect(surface, WALL_COLOR, (0, 0, t, h + t))           # left
-    pygame.draw.rect(surface, WALL_COLOR, (w - t, 0, t, h + t))       # right
-    pygame.draw.rect(surface, WALL_COLOR, (0, h, w, t + 2))           # bottom
+    pygame.draw.rect(surface, WALL_COLOR, (0, 0, t, h + t))  # left
+    pygame.draw.rect(surface, WALL_COLOR, (w - t, 0, t, h + t))  # right
+    pygame.draw.rect(surface, WALL_COLOR, (0, h, w, t + 2))  # bottom
 
     # Danger line
     if show_danger_line:
         dy = int(cfg.danger_line_y)
         for x in range(t, w - t, 12):
-            pygame.draw.line(surface, DANGER_LINE_COLOR, (x, dy), (min(x + 6, w - t), dy), 2)
+            pygame.draw.line(
+                surface, DANGER_LINE_COLOR, (x, dy), (min(x + 6, w - t), dy), 2
+            )
 
     # Fruits
     for fs in world.serialize():

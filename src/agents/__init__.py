@@ -1,4 +1,4 @@
-# Generated with Claude Code (claude-sonnet-4-6). Architecture directed by David Huang.
+# AI-assisted package exports; public agent interface reviewed and organized by me.
 
 from agents.center_agent import CenterAgent
 from agents.dqn import DQNAgent

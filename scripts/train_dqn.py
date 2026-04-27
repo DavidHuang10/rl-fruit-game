@@ -1,3 +1,4 @@
+# AI-assisted wrapper for DQN training; delegates to the reviewed src implementation.
 from __future__ import annotations
 
 import runpy

@@ -1,3 +1,5 @@
+# AI-assisted Gymnasium environment; observation/action/reward design directed by me.
+# NOTE: I had to debug the observation collection and design how the vector representation of the fruits worked.
 from __future__ import annotations
 
 import os
@@ -24,6 +26,12 @@ _HUD_WIDTH = 150
 
 
 class SuikaEnv(gym.Env):
+    """Custom Gymnasium wrapper for the Suika-style physics game.
+
+    NOTE: I designed the action bins, structured observations, and
+    merge-score reward to match the original game, triangular growth instead of exponential.
+    """
+
     metadata = {"render_modes": ["human", "rgb_array"], "render_fps": 60}
 
     def __init__(
@@ -85,7 +93,9 @@ class SuikaEnv(gym.Env):
 
     def drop(self, action: int) -> None:
         """Drop the current fruit. Call tick() each frame until it returns settled=True."""
-        assert self._world is not None and self._rng is not None, "Call reset() before drop()"
+        assert (
+            self._world is not None and self._rng is not None
+        ), "Call reset() before drop()"
         assert self.action_space.contains(action), f"Invalid action {action}"
         cfg = self.cfg
         fruit_radius = FRUITS[self._current_fruit].radius
@@ -134,10 +144,10 @@ class SuikaEnv(gym.Env):
         terminated = self._world.is_game_over()
         return frame_score, True, terminated
 
-    def step(
-        self, action: int
-    ) -> Tuple[Dict, float, bool, bool, Dict]:
-        assert self._world is not None and self._rng is not None, "Call reset() before step()"
+    def step(self, action: int) -> Tuple[Dict, float, bool, bool, Dict]:
+        assert (
+            self._world is not None and self._rng is not None
+        ), "Call reset() before step()"
 
         self.drop(action)
         total_score = 0.0
@@ -170,8 +180,11 @@ class SuikaEnv(gym.Env):
         target = self._screen if self.render_mode == "human" else self._offscreen
         assert target is not None
         render_frame(
-            self._world, target, self.cfg,
-            self._current_fruit, self._next_fruit,
+            self._world,
+            target,
+            self.cfg,
+            self._current_fruit,
+            self._next_fruit,
         )
         if self.render_mode == "human":
             pygame.display.flip()
@@ -193,6 +206,7 @@ class SuikaEnv(gym.Env):
     # Observation building
     # ------------------------------------------------------------------
 
+    # NOTE: I had to debug the observation collection and design how the vector representation of the fruits worked.
     def _build_observation_space(self) -> spaces.Dict:
         cfg = self.cfg
         if cfg.observation_mode == "pixels":
@@ -200,19 +214,25 @@ class SuikaEnv(gym.Env):
                 "Pixel observation mode is not yet implemented. "
                 "Use observation_mode='state' (default)."
             )
-        return spaces.Dict({
-            "fruits": spaces.Box(
-                low=-np.inf, high=np.inf,
-                shape=(cfg.max_fruits, 4), dtype=np.float32,
-            ),
-            "fruit_types": spaces.Box(
-                low=0.0, high=1.0,
-                shape=(cfg.max_fruits, NUM_FRUITS), dtype=np.float32,
-            ),
-            "fruit_mask": spaces.MultiBinary(cfg.max_fruits),
-            "current_fruit": spaces.Discrete(_POOL_SIZE),
-            "next_fruit": spaces.Discrete(_POOL_SIZE),
-        })
+        return spaces.Dict(
+            {
+                "fruits": spaces.Box(
+                    low=-np.inf,
+                    high=np.inf,
+                    shape=(cfg.max_fruits, 4),
+                    dtype=np.float32,
+                ),
+                "fruit_types": spaces.Box(
+                    low=0.0,
+                    high=1.0,
+                    shape=(cfg.max_fruits, NUM_FRUITS),
+                    dtype=np.float32,
+                ),
+                "fruit_mask": spaces.MultiBinary(cfg.max_fruits),
+                "current_fruit": spaces.Discrete(_POOL_SIZE),
+                "next_fruit": spaces.Discrete(_POOL_SIZE),
+            }
+        )
 
     def _get_obs(self) -> Dict[str, Any]:
         cfg = self.cfg

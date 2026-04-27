@@ -1,3 +1,4 @@
+# AI-assisted agent factory; final checkpoint paths and shared select_action interface reviewed by me.
 from __future__ import annotations
 
 from pathlib import Path
@@ -15,8 +16,7 @@ PPO_DEFAULT_CHECKPOINT = Path("models/ppo/model.zip")
 
 
 class SelectsAction(Protocol):
-    def select_action(self, obs: dict, eval_mode: bool = True) -> int:
-        ...
+    def select_action(self, obs: dict, eval_mode: bool = True) -> int: ...
 
 
 def build_agent(

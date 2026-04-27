@@ -1,3 +1,4 @@
+# AI-assisted environment registration; final Gymnasium ID reviewed by me.
 from gymnasium.envs.registration import register
 
 from .env import SuikaEnv

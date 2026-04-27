@@ -1,3 +1,4 @@
+# AI-assisted wrapper for PPO training; delegates to the reviewed SB3 training script.
 from __future__ import annotations
 
 import runpy

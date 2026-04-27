@@ -1,3 +1,4 @@
+# AI-assisted environment tests; API and observation expectations reviewed by me.
 """Gymnasium API compliance and integration tests for SuikaEnv."""
 import numpy as np
 import pytest
@@ -11,6 +12,7 @@ from suika_env.config import EnvConfig
 # ---------------------------------------------------------------------------
 # Construction and registration
 # ---------------------------------------------------------------------------
+
 
 class TestConstruction:
     def test_gym_make(self):
@@ -39,9 +41,11 @@ class TestConstruction:
 # Gymnasium API compliance
 # ---------------------------------------------------------------------------
 
+
 class TestGymnasiumAPI:
     def test_check_env(self):
         from stable_baselines3.common.env_checker import check_env
+
         env = SuikaEnv()
         check_env(env, warn=True)
         env.close()
@@ -49,7 +53,9 @@ class TestGymnasiumAPI:
     def test_obs_after_reset_in_space(self):
         env = SuikaEnv()
         obs, _ = env.reset(seed=0)
-        assert env.observation_space.contains(obs), "Obs after reset is outside obs space"
+        assert env.observation_space.contains(
+            obs
+        ), "Obs after reset is outside obs space"
         env.close()
 
     def test_obs_after_step_in_space(self):
@@ -106,6 +112,7 @@ class TestGymnasiumAPI:
 # Determinism
 # ---------------------------------------------------------------------------
 
+
 class TestDeterminism:
     def test_same_seed_same_fruit_sequence(self):
         def run_episode(seed):
@@ -145,6 +152,7 @@ class TestDeterminism:
 # Rewards
 # ---------------------------------------------------------------------------
 
+
 class TestRewards:
     def test_reward_nonnegative(self):
         env = SuikaEnv()
@@ -172,6 +180,7 @@ class TestRewards:
 # ---------------------------------------------------------------------------
 # Rendering
 # ---------------------------------------------------------------------------
+
 
 class TestRendering:
     def test_rgb_array_shape(self):

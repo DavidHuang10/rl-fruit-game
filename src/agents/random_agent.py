@@ -1,3 +1,4 @@
+# AI-assisted random baseline; included to anchor learned-agent performance.
 from __future__ import annotations
 
 

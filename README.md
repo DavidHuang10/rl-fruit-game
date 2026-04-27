@@ -20,7 +20,7 @@ Human controls: arrow keys move the drop column, space drops the fruit.
 
 ## Video Links
 
-- **Demo video (3-5 min):** [videos/demo.mp4](videos/demo.mp4)
+- **Demo video (3-5 min):** [videos/Demo.mov](videos/Demo.mov)
 - **Technical walkthrough (5-10 min):** [videos/technical_walkthrough.mp4](videos/technical_walkthrough.mp4)
 
 ## Evaluation
@@ -56,7 +56,7 @@ Training curves:
 
 ## Individual Contributions
 
-Completed individually by David Huang.
+Completed individually by me.
 
 ## Train
 

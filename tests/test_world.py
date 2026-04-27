@@ -1,3 +1,4 @@
+# AI-assisted world tests; merge, scoring, and game-over cases checked after play-testing.
 """Unit tests for SuikaWorld physics, merges, scoring, and game-over."""
 import numpy as np
 import pytest
@@ -16,6 +17,7 @@ def make_world(seed: int = 0, **overrides) -> SuikaWorld:
 # ---------------------------------------------------------------------------
 # Merge mechanics
 # ---------------------------------------------------------------------------
+
 
 class TestMerges:
     def test_two_cherries_merge_into_strawberry(self):
@@ -88,6 +90,7 @@ class TestMerges:
 # Settle loop
 # ---------------------------------------------------------------------------
 
+
 class TestSettle:
     def test_single_fruit_settles(self):
         world = make_world()
@@ -109,11 +112,12 @@ class TestSettle:
 # Game-over detection
 # ---------------------------------------------------------------------------
 
+
 class TestGameOver:
     def test_fruit_above_danger_line_triggers_gameover(self):
         world = make_world()
         danger_y = world.cfg.danger_line_y  # default 120
-        radius = FRUITS[0].radius           # 12
+        radius = FRUITS[0].radius  # 12
         # Place cherry so its top (center_y - radius) is above the danger line.
         # center_y = danger_y - 5  →  top_y = danger_y - 5 - radius = 103 < 120 ✓
         world.add_fruit(250, danger_y - 5, 0)

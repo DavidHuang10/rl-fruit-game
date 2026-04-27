@@ -1,3 +1,4 @@
+# AI-assisted configuration; physics and game-over constants tuned through my play-testing.
 from __future__ import annotations
 from dataclasses import dataclass
 from typing import Literal, Optional
@@ -5,6 +6,7 @@ from typing import Literal, Optional
 from .constants import ACTION_COUNT, MAX_FRUITS
 
 
+# NOTE: I had to change these parameters to match how I thought the original game appeared, editing gravity, friction, collision elasticity, etc.
 @dataclass(frozen=True)
 class EnvConfig:
     # Container geometry (px)
@@ -13,8 +15,8 @@ class EnvConfig:
     wall_thickness: int = 10
 
     # Drop mechanics
-    spawn_y: int = 50           # y where new fruit appears (below top edge)
-    danger_line_y: int = 120    # fruits resting above this → game over
+    spawn_y: int = 50  # y where new fruit appears (below top edge)
+    danger_line_y: int = 120  # fruits resting above this → game over
 
     # Action space
     n_action_bins: int = ACTION_COUNT
@@ -26,7 +28,7 @@ class EnvConfig:
     # Physics
     gravity: float = 900.0
     physics_dt: float = 1 / 60
-    physics_substeps: int = 4   # effective 240 Hz
+    physics_substeps: int = 4  # effective 240 Hz
     fruit_friction: float = 0.4
     fruit_elasticity: float = 0.3
     fruit_density: float = 1.0

@@ -1,3 +1,4 @@
+# AI-assisted Pymunk world implementation; merge and game-over logic were coded/debugged by me.
 from __future__ import annotations
 
 import math
@@ -54,8 +55,8 @@ class SuikaWorld:
         floor.friction = 3.0
         floor.elasticity = 0.1
         sides = [
-            pymunk.Segment(self.space.static_body, (0, 0), (0, h + t), t),   # left
-            pymunk.Segment(self.space.static_body, (w, 0), (w, h + t), t),   # right
+            pymunk.Segment(self.space.static_body, (0, 0), (0, h + t), t),  # left
+            pymunk.Segment(self.space.static_body, (w, 0), (w, h + t), t),  # right
         ]
         for wall in sides:
             wall.friction = 0.5
@@ -126,6 +127,11 @@ class SuikaWorld:
     # ------------------------------------------------------------------
 
     def _process_merges(self) -> int:
+        """Resolve queued same-type fruit collisions into score and new fruits.
+
+        Human-edited: I reviewed this carefully because merge scoring and
+        terminal board behavior define the reward signal for every agent.
+        """
         if not self._pending_merges:
             return 0
 
@@ -140,7 +146,10 @@ class SuikaWorld:
             if key in seen:
                 continue
             seen.add(key)
-            if b_a.suika_id not in self._alive_ids or b_b.suika_id not in self._alive_ids:
+            if (
+                b_a.suika_id not in self._alive_ids
+                or b_b.suika_id not in self._alive_ids
+            ):
                 continue
 
             fruit_type = b_a.suika_type

@@ -1,3 +1,4 @@
+# AI-assisted human play mode; controls and physics feel were play-tested by me.
 """
 Keyboard-controlled human play mode for SuikaEnv.
 
@@ -67,7 +68,10 @@ def main() -> None:
                     col = n_bins // 2
                     state = "waiting"
                     print("Restarted.")
-                elif state == "dropping" and event.key in (pygame.K_SPACE, pygame.K_RETURN):
+                elif state == "dropping" and event.key in (
+                    pygame.K_SPACE,
+                    pygame.K_RETURN,
+                ):
                     state = _on_settled(env, _settle_to_end(env))
                 elif state == "waiting":
                     if event.key == pygame.K_LEFT:
@@ -97,12 +101,19 @@ def _draw_aim(env: SuikaEnv, col: int) -> None:
         return
     cfg = env.cfg
     from suika_env.fruits import FRUITS
+
     fruit_r = FRUITS[env._current_fruit].radius
     x_min = cfg.wall_thickness + fruit_r
     x_max = cfg.container_width - cfg.wall_thickness - fruit_r
     x = int(x_min + (col + 0.5) / cfg.n_action_bins * (x_max - x_min))
     for y in range(cfg.spawn_y, cfg.container_height, 8):
-        pygame.draw.line(env._screen, (150, 150, 220), (x, y), (x, min(y + 4, cfg.container_height)), 1)
+        pygame.draw.line(
+            env._screen,
+            (150, 150, 220),
+            (x, y),
+            (x, min(y + 4, cfg.container_height)),
+            1,
+        )
 
 
 if __name__ == "__main__":

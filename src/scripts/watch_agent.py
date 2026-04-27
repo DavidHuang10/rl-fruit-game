@@ -1,3 +1,4 @@
+# AI-assisted agent viewer; Heavily debugged by me to resolve issues loading model.
 from __future__ import annotations
 
 import argparse
@@ -12,10 +13,17 @@ from suika_env.fruits import FRUITS
 
 
 def parse_args() -> argparse.Namespace:
-    p = argparse.ArgumentParser(description="Watch an agent play SuikaEnv in real time.")
+    p = argparse.ArgumentParser(
+        description="Watch an agent play SuikaEnv in real time."
+    )
     p.add_argument("--agent", choices=["random", "center", "dqn", "ppo"], required=True)
     p.add_argument("--checkpoint", type=pathlib.Path, default=None)
-    p.add_argument("--seed", type=int, default=None, help="Fixed RNG seed. Omit for a random seed each episode.")
+    p.add_argument(
+        "--seed",
+        type=int,
+        default=None,
+        help="Fixed RNG seed. Omit for a random seed each episode.",
+    )
     p.add_argument("--episodes", type=int, default=1)
     p.add_argument("--fps", type=int, default=60)
     p.add_argument(
@@ -70,6 +78,7 @@ def wait_after_game_over(clock: pygame.time.Clock, fps: int) -> str:
         clock.tick(fps)
 
 
+# NOTE: I edited this function to add speed ups to watch model play faster.
 def run_episode(
     env: SuikaEnv,
     agent: SelectsAction,
@@ -141,7 +150,9 @@ def main() -> None:
     try:
         agent = build_agent(args.agent, env.action_space, args.checkpoint)
         for ep in range(args.episodes):
-            episode_seed = (args.seed + ep) if args.seed is not None else random.randint(0, 2**31)
+            episode_seed = (
+                (args.seed + ep) if args.seed is not None else random.randint(0, 2**31)
+            )
             finished, _, _ = run_episode(
                 env,
                 agent,
@@ -152,7 +163,9 @@ def main() -> None:
             if not finished:
                 break
             if args.pause_on_game_over and ep < args.episodes - 1:
-                event = wait_after_game_over(env._clock or pygame.time.Clock(), args.fps)
+                event = wait_after_game_over(
+                    env._clock or pygame.time.Clock(), args.fps
+                )
                 if event == "quit":
                     break
     finally:
@@ -161,6 +174,7 @@ def main() -> None:
 
 def _main_for(agent: str) -> None:
     import sys
+
     sys.argv = [sys.argv[0], "--agent", agent] + sys.argv[1:]
     main()
 

@@ -1,3 +1,4 @@
+# AI-assisted agent tests; expected interfaces reviewed against the final scripts.
 from __future__ import annotations
 
 import numpy as np
@@ -5,8 +6,20 @@ from gymnasium import spaces
 
 import agents.factory as factory
 import agents.ppo as ppo_module
-from agents import CenterAgent, DQNAgent, DictReplayBuffer, PPOAgent, RandomAgent, SuikaQNetwork
-from suika_env.constants import ACTION_COUNT, MAX_FRUITS, NUM_FRUIT_TYPES, SPAWN_POOL_SIZE
+from agents import (
+    CenterAgent,
+    DQNAgent,
+    DictReplayBuffer,
+    PPOAgent,
+    RandomAgent,
+    SuikaQNetwork,
+)
+from suika_env.constants import (
+    ACTION_COUNT,
+    MAX_FRUITS,
+    NUM_FRUIT_TYPES,
+    SPAWN_POOL_SIZE,
+)
 from suika_env.env import SuikaEnv
 
 
@@ -89,7 +102,10 @@ def test_shared_constants_match_default_env_spaces():
     try:
         assert env.action_space.n == ACTION_COUNT
         assert env.observation_space["fruits"].shape == (MAX_FRUITS, 4)
-        assert env.observation_space["fruit_types"].shape == (MAX_FRUITS, NUM_FRUIT_TYPES)
+        assert env.observation_space["fruit_types"].shape == (
+            MAX_FRUITS,
+            NUM_FRUIT_TYPES,
+        )
         assert env.observation_space["current_fruit"].n == SPAWN_POOL_SIZE
         assert env.observation_space["next_fruit"].n == SPAWN_POOL_SIZE
     finally:

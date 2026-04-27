@@ -1,3 +1,4 @@
+# AI-assisted baseline; I chose center-drop as a simple heuristic comparison.
 from __future__ import annotations
 
 

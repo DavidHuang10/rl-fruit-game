@@ -15,7 +15,6 @@ If using `pip` instead:
 python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
-pip install torch matplotlib pandas stable-baselines3
 pytest tests/ -v
 ```
 

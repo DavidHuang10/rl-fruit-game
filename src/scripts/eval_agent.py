@@ -1,3 +1,4 @@
+# AI-assisted evaluation script;
 from __future__ import annotations
 
 import argparse
@@ -23,7 +24,13 @@ def parse_args() -> argparse.Namespace:
     p.add_argument("--out_dir", type=pathlib.Path, default=RESULTS_DIR)
     return p.parse_args()
 
+
 def evaluate(agent: SelectsAction, episodes: int, seed: int) -> list[dict[str, float]]:
+    """Run complete evaluation episodes and collect per-episode metrics.
+
+    Human-edited: I chose these metrics to compare both score and board health,
+    not just raw return.
+    """
     rows: list[dict[str, float]] = []
     env = SuikaEnv()
     try:
@@ -41,14 +48,16 @@ def evaluate(agent: SelectsAction, episodes: int, seed: int) -> list[dict[str, f
                 if terminated or truncated:
                     break
 
-            rows.append({
-                "episode": float(ep),
-                "episode_return": ep_return,
-                "final_score": float(final_info.get("score", ep_return)),
-                "episode_length": float(ep_len),
-                "final_num_fruits": float(final_info.get("num_fruits", 0)),
-                "last_physics_frames": float(final_info.get("physics_frames", 0)),
-            })
+            rows.append(
+                {
+                    "episode": float(ep),
+                    "episode_return": ep_return,
+                    "final_score": float(final_info.get("score", ep_return)),
+                    "episode_length": float(ep_len),
+                    "final_num_fruits": float(final_info.get("num_fruits", 0)),
+                    "last_physics_frames": float(final_info.get("physics_frames", 0)),
+                }
+            )
     finally:
         env.close()
     return rows
@@ -70,7 +79,12 @@ def summarize(rows: list[dict[str, float]]) -> dict[str, float]:
     return summary
 
 
-def save_outputs(agent_name: str, rows: list[dict[str, float]], summary: dict[str, float], out_dir: pathlib.Path) -> None:
+def save_outputs(
+    agent_name: str,
+    rows: list[dict[str, float]],
+    summary: dict[str, float],
+    out_dir: pathlib.Path,
+) -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
     csv_path = out_dir / f"{agent_name}_episodes.csv"
     json_path = out_dir / f"{agent_name}_summary.json"
@@ -98,10 +112,18 @@ def main() -> None:
 
     print(f"Agent: {args.agent}")
     print(f"Episodes: {args.episodes}")
-    print(f"Mean return: {summary['mean_episode_return']:.2f} +/- {summary['std_episode_return']:.2f}")
-    print(f"Mean score:  {summary['mean_final_score']:.2f} +/- {summary['std_final_score']:.2f}")
-    print(f"Mean length: {summary['mean_episode_length']:.1f} +/- {summary['std_episode_length']:.1f}")
-    print(f"Mean fruits: {summary['mean_final_num_fruits']:.1f} +/- {summary['std_final_num_fruits']:.1f}")
+    print(
+        f"Mean return: {summary['mean_episode_return']:.2f} +/- {summary['std_episode_return']:.2f}"
+    )
+    print(
+        f"Mean score:  {summary['mean_final_score']:.2f} +/- {summary['std_final_score']:.2f}"
+    )
+    print(
+        f"Mean length: {summary['mean_episode_length']:.1f} +/- {summary['std_episode_length']:.1f}"
+    )
+    print(
+        f"Mean fruits: {summary['mean_final_num_fruits']:.1f} +/- {summary['std_final_num_fruits']:.1f}"
+    )
     print(f"Saved: {args.out_dir / f'{args.agent}_episodes.csv'}")
     print(f"Saved: {args.out_dir / f'{args.agent}_summary.json'}")
 

@@ -7,6 +7,5 @@ __pycache__/
 .ruff_cache/
 
 .venv/
-.venv_cluster/
 
 .DS_Store

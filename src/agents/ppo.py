@@ -1,3 +1,4 @@
+# AI-assisted SB3 PPO wrapper; I chose PPO as the library comparison method. See training in scripts/train_ppo_sb3.py
 from __future__ import annotations
 
 import pathlib
