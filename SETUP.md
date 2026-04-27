@@ -21,7 +21,7 @@ pytest tests/ -v
 ## Play
 
 ```bash
-uv run python scripts/play_human.py
+uv run play
 ```
 
 Arrow keys move the drop column. Space drops the fruit.
